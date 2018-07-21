@@ -133,7 +133,7 @@ def select(con, table, logic="OR", **kwargs):
     select_stmnt = """SELECT DISTINCT rowid, * FROM {}"""
     try:
         if kwargs:
-            select_stmnt += __stmnt("WHERE", logic, **kwargs)
+            select_stmnt += _stmnt("WHERE", logic, **kwargs)
             return con.execute(select_stmnt.format(table), tuple(kwargs.values()))
         return con.execute(select_stmnt.format(table))
     except sqlite3.DatabaseError as err:
@@ -162,7 +162,7 @@ def delete(con, table, logic="OR", **kwargs):
     Reading:
         https://sqlite.org/lang_delete.html
     """
-    delete_stmnt = """DELETE FROM {}""" + __stmnt("WHERE", logic, **kwargs)
+    delete_stmnt = """DELETE FROM {}""" + _stmnt("WHERE", logic, **kwargs)
     try:
         with con:
             con.execute(delete_stmnt.format(table), tuple(kwargs.values()))
@@ -203,8 +203,8 @@ def update(con, table, what, logic="OR", **where):
     if what.get("modified"):
         what.pop("modified")
 
-    update_stmnt = """ UPDATE {}""" + __stmnt("SET", ",", **what)
-    update_stmnt += """, modified = CURRENT_DATE""" + __stmnt("WHERE", logic, **where)
+    update_stmnt = """ UPDATE {}""" + _stmnt("SET", ",", **what)
+    update_stmnt += """, modified = CURRENT_DATE""" + _stmnt("WHERE", logic, **where)
 
     try:
         with con:
@@ -239,7 +239,7 @@ def destroy(con, db_name):
         return False
 
 
-def __stmnt(statement, logic, **kwargs):
+def _stmnt(statement, logic, **kwargs):
     return " {} ".format(statement) + " {} ".format(logic).join("{}{} = ?"\
            .format("NOT " if logic == "NOT" else "", key) for key in kwargs.keys())
 
