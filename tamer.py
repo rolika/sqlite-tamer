@@ -89,7 +89,7 @@ class Tamer(sqlite3.Connection):
             print("Couldn't insert item:", err, file=sys.stderr)
         return lastrowid
 
-        
+
     def select(self, table, logic="OR", **kwargs):
         """Select entire row(s) from database.
         Using only the mandatory arguments selects everything.
@@ -220,8 +220,27 @@ class Tamer(sqlite3.Connection):
             return False
 
 
+    def drop(self, table_name):
+        """Drop (delete) table.
+
+        Args:
+            table:      string containing a valid table-name
+
+        Returns:
+            boolean:    indicates success
+
+        Reading:
+            https://sqlite.org/lang_droptable.html
+        """
+        try:
+            with self:
+                self.execute("""DROP TABLE IF EXISTS {}""".format(table_name))
+            return True
+        except sqlite3.Error as err:
+            print("Couldn't drop table:", err, file=sys.stderr)
+            return False
+
+
 def _stmnt(statement, logic, **kwargs):
     return " {} ".format(statement) + " {} ".format(logic).join("{}{} = ?"\
            .format("NOT " if logic == "NOT" else "", key) for key in kwargs.keys())
-
-

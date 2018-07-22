@@ -61,6 +61,9 @@ class TamerTest(unittest.TestCase):
         self.conn.update("movies", {"title": "Star Wars: A new hope", "watched": 2013}, logic="AND", title="Star Wars", year=1978)
         self.assertNotEqual(next(self.conn.select("movies", rowid=1))["title"], "Star Wars: A new hope", "Updated the wrong Star Wars movie")
 
+    def test_drop(self):
+        self.assertTrue(self.conn.drop("movies"), "Failed to drop 'movies'")
+
     def tearDown(self):
         self.conn.close()
 
