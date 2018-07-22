@@ -9,7 +9,7 @@ import os
 
 
 class Tamer(sqlite3.Connection):
-    """Instanciated as a subclass of SQLite-connection object"""
+    """Instanciated as a subclass of SQLite-connection object."""
     def __init__(self, db_name=":memory:"):
         """Initialize SQLite3 db-connection.
         If the database file doesn't exist, it'll be created.
@@ -18,9 +18,6 @@ class Tamer(sqlite3.Connection):
 
         Args:
             db_name: string containing a database-name (could also be a path-like object)
-
-        Returns:
-            instance of sqlite3.Connection to access the database if succeed, otherwise None
 
         Reading:
             https://docs.python.org/3/library/sqlite3.html#connection-objects
