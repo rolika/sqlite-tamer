@@ -63,7 +63,6 @@ class Tamer(sqlite3.Connection):
         Commits after succesful execution.
 
         Args:
-            con:        SQLite3 Connection-object (return value of init())
             table:      string containing a valid table-name
             **kwargs:   columnname=value separated by commas. Unintentionally provided values for
                         'rowid', 'added' and 'modified' will be discarded.
@@ -97,7 +96,6 @@ class Tamer(sqlite3.Connection):
         Always selects primary key ('rowid') too.
 
         Args:
-            con:        SQLite3 Connection-object (return value of init())
             table:      string containing a valid table-name
             logic:      logical operator in the WHERE clause. This simple function won't allow to
                         mix logical operators. Provided without kwargs won't have any effect.
@@ -131,7 +129,6 @@ class Tamer(sqlite3.Connection):
         Commits after succesful execution.
 
         Args:
-            con:        SQLite3 Connection-object (return value of init())
             table:      string containing a valid table-name
             logic:      logical operator in the WHERE clause. This simple function won't allow to
                         mix logical operators. Provided without kwargs has no sense.
@@ -162,7 +159,6 @@ class Tamer(sqlite3.Connection):
         Commits after succesful execution.
 
         Args:
-            con:        SQLite3 Connection-object (return value of init())
             table:      string containing a valid table-name
             what:       dictionary containing column=new_value pairs
             logic:      logical operator in the WHERE clause. This simple function won't allow to
