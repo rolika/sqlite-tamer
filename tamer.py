@@ -24,6 +24,7 @@ class Tamer(sqlite3.Connection):
         """
         super().__init__(db_name)
         self.row_factory = sqlite3.Row
+    
 
     def create(self, table_name, *column_names):
         """Create table with provided columns.
