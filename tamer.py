@@ -77,12 +77,12 @@ class Tamer(sqlite3.Connection):
             kwargs.pop("added")
         if kwargs.get("modified"):
             kwargs.pop("modified")
-        
+
         lastrowid = None
         cols = ", ".join(kwargs.keys())
         qmarks = ", ".join("?" for _ in kwargs)
         values = tuple(kwargs.values())
-        
+
         try:
             with self:
                 lastrowid = self.execute("""
@@ -117,10 +117,10 @@ class Tamer(sqlite3.Connection):
             https://www.w3schools.com/sql/sql_and_or.asp
         """
         select_stmnt = """SELECT DISTINCT rowid, * FROM {}"""
-        
+
         try:
             if kwargs:
-                select_stmnt += _stmnt("WHERE", logic, **kwargs)
+                select_stmnt += self._stmnt("WHERE", logic, **kwargs)
                 return self.execute(select_stmnt.format(table), tuple(kwargs.values()))
             return self.execute(select_stmnt.format(table))
         except sqlite3.Error as err:
@@ -148,8 +148,8 @@ class Tamer(sqlite3.Connection):
         Reading:
             https://sqlite.org/lang_delete.html
         """
-        delete_stmnt = """DELETE FROM {}""" + _stmnt("WHERE", logic, **kwargs)
-        
+        delete_stmnt = """DELETE FROM {}""" + self._stmnt("WHERE", logic, **kwargs)
+
         try:
             with self:
                 self.execute(delete_stmnt.format(table), tuple(kwargs.values()))
@@ -189,9 +189,9 @@ class Tamer(sqlite3.Connection):
         if what.get("modified"):
             what.pop("modified")
 
-        update_stmnt = """ UPDATE {}""" + _stmnt("SET", ",", **what)
-        update_stmnt += """, modified = CURRENT_DATE""" + _stmnt("WHERE", logic, **where)
-        
+        update_stmnt = """ UPDATE {}""" + self._stmnt("SET", ",", **what)
+        update_stmnt += """, modified = CURRENT_DATE""" + self._stmnt("WHERE", logic, **where)
+
         try:
             with self:
                 self.execute(update_stmnt.format(table),
@@ -245,7 +245,8 @@ class Tamer(sqlite3.Connection):
             return False
 
 
-def _stmnt(statement, logic, **kwargs):
-    return " {} ".format(statement) + " {} ".format(logic).join("{}{} = ?"\
-           .format("NOT " if logic == "NOT" else "", key) for key in kwargs.keys())
+    @staticmethod
+    def _stmnt(statement, logic, **kwargs):
+        return " {} ".format(statement) + " {} ".format(logic).join("{}{} = ?"\
+               .format("NOT " if logic == "NOT" else "", key) for key in kwargs.keys())
 
