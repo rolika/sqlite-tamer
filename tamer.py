@@ -198,27 +198,26 @@ class Tamer(sqlite3.Connection):
             return False
 
 
-def destroy(con, db_name):
-    """Delete database file.
-    May be necessary as SQLite doesn't support 'DROP DATABASE'.
+    def destroy(self, db_name):
+        """Delete database file.
+        May be necessary as SQLite doesn't support 'DROP DATABASE'.
 
-    Args:
-        con:     SQLite3 Connection-object (return value of init())
-        db_name: string containing a database-name (could also be a path-like object)
+        Args:
+            db_name: string containing a database-name (could also be a path-like object)
 
-    Returns:
-        boolean:    indicates success
+        Returns:
+            boolean:    indicates success
 
-    Reading:
-        https://docs.python.org/3/library/os.html#os.unlink
-    """
-    try:
-        con.close()
-        os.unlink(db_name)
-        return True
-    except (OSError, sqlite3.DatabaseError) as err:
-        print("Couldn't delete database:", err, file=sys.stderr)
-        return False
+        Reading:
+            https://docs.python.org/3/library/os.html#os.unlink
+        """
+        try:
+            self.close()
+            os.unlink(db_name)
+            return True
+        except (OSError, sqlite3.Error) as err:
+            print("Couldn't delete database:", err, file=sys.stderr)
+            return False
 
 
 def _stmnt(statement, logic, **kwargs):
