@@ -6,7 +6,7 @@ class TamerTest(unittest.TestCase):
     """Testing sqlite-tamer Tamer() class"""
 
     def setUp(self):
-        self.conn = tamer.Tamer()
+        self.conn = tamer.Tamer("movie.db")
         self.conn.create("movies", "title", "year", "watched")
         self.conn.insert("movies", title="Star Wars", year=1977, watched=2012)
         self.conn.insert("movies", title="The Matrix", year=1999, watched=50)
@@ -65,7 +65,7 @@ class TamerTest(unittest.TestCase):
         self.assertTrue(self.conn.drop("movies"), "Failed to drop 'movies'")
 
     def tearDown(self):
-        self.conn.close()
+        self.conn.destroy("movie.db")
 
 if __name__ == "__main__":
     unittest.main()
