@@ -22,9 +22,11 @@ class Tamer(sqlite3.Connection):
         Reading:
             https://docs.python.org/3/library/sqlite3.html#connection-objects
         """
-        super().__init__(db_name)
-        self.row_factory = sqlite3.Row
-    
+        try:
+            super().__init__(db_name)
+            self.row_factory = sqlite3.Row
+        except sqlite3.Error as err:
+            sys.exit("Couldn't connect to database: {}".format(err))
 
     def create(self, table_name, *column_names):
         """Create table with provided columns.
