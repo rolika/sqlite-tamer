@@ -27,7 +27,7 @@ class Tamer(sqlite3.Connection):
             self.row_factory = sqlite3.Row
         except sqlite3.Error as err:
             sys.exit("Couldn't connect to database: {}".format(err))
-            
+
 
     def create(self, table_name, *column_names):
         """Create table with provided columns.
@@ -180,7 +180,7 @@ class Tamer(sqlite3.Connection):
 
         Reading:
             https://sqlite.org/lang_update.html
-        """        
+        """
         kwargs = self._discard("rowid", "added", "modified", **what)
 
         update_stmnt = """ UPDATE {}""" + self._stmnt("SET", ",", **what)
@@ -237,14 +237,14 @@ class Tamer(sqlite3.Connection):
         except sqlite3.Error as err:
             print("Couldn't drop table:", err, file=sys.stderr)
             return False
-    
-    
+
+
     def fill(csv_filename, tablename=None, overwrite=False, **columns):
         """Import records from a csv-file
         Default behavior: create a new table in the database with the name of the csv-file (without
         .csv). If the csv comes with header, use the fieldnames as column-names, if not, use
-        filename_i, where i is index starting from 0.
-        
+        filename_i, where i is index starting from 0. The csv-rows gets inserted into the table.
+
         Args:
             csv_filename:   string containing a valid csv-file
             tablename:      string containing a table name. If existing, proceed as in the overwrite
@@ -252,20 +252,28 @@ class Tamer(sqlite3.Connection):
             overwrite:      False: use the provided existing table (appending rows)
                             True: drop the provided existing table and create a new one
             **columns:      if provided, use these column-names
+        
+        Returns:
+            primary key of last inserted row or None if operation failed
+        
+        Reading:
+            https://docs.python.org/3/library/csv.html
+            https://www.python.org/dev/peps/pep-0305/
+            https://github.com/rufuspollock/csv2sqlite (although i want something far more simpler)
         """
         pass
 
 
     @staticmethod
     def _stmnt(statement, logic, **kwargs):
-        """ SQL statement extension """
+        """SQL statement extension"""
         return " {} ".format(statement) + " {} ".format(logic).join("{}{} = ?"\
                .format("NOT " if logic == "NOT" else "", key) for key in kwargs.keys())
 
 
     @staticmethod
     def _discard(*system_props, **kwargs):
-        """ discard system properties """
+        """discard system properties"""
         for prop in system_props:
             if kwargs.get(prop):
                 kwargs.pop()
