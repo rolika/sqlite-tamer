@@ -74,12 +74,7 @@ class Tamer(sqlite3.Connection):
             https://sqlite.org/lang_insert.html
             https://docs.python.org/3/library/stdtypes.html#mapping-types-dict
         """
-        if kwargs.get("rowid"):
-            kwargs.pop("rowid")
-        if kwargs.get("added"):
-            kwargs.pop("added")
-        if kwargs.get("modified"):
-            kwargs.pop("modified")
+        kwargs = self._discard("rowid", "added", "modified", **kwargs)
 
         lastrowid = None
         cols = ", ".join(kwargs.keys())
@@ -184,13 +179,8 @@ class Tamer(sqlite3.Connection):
 
         Reading:
             https://sqlite.org/lang_update.html
-        """
-        if what.get("rowid"):
-            what.pop("rowid")
-        if what.get("added"):
-            what.pop("added")
-        if what.get("modified"):
-            what.pop("modified")
+        """        
+        kwargs = self._discard("rowid", "added", "modified", **what)
 
         update_stmnt = """ UPDATE {}""" + self._stmnt("SET", ",", **what)
         update_stmnt += """, modified = CURRENT_DATE""" + self._stmnt("WHERE", logic, **where)
