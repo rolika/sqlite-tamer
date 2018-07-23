@@ -250,14 +250,16 @@ class Tamer(sqlite3.Connection):
 
     @staticmethod
     def _stmnt(statement, logic, **kwargs):
+        """ SQL statement extension """
         return " {} ".format(statement) + " {} ".format(logic).join("{}{} = ?"\
                .format("NOT " if logic == "NOT" else "", key) for key in kwargs.keys())
 
 
     @staticmethod
-    def _discard(*args, **kwargs):
-        for column in args:
-            if kwargs.get(column):
+    def _discard(*system_props, **kwargs):
+        """ discard system properties """
+        for prop in system_props:
+            if kwargs.get(prop):
                 kwargs.pop()
         return kwargs
 
