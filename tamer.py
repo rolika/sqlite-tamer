@@ -253,3 +253,11 @@ class Tamer(sqlite3.Connection):
         return " {} ".format(statement) + " {} ".format(logic).join("{}{} = ?"\
                .format("NOT " if logic == "NOT" else "", key) for key in kwargs.keys())
 
+
+    @staticmethod
+    def _discard(**kwargs):
+        for column in ("rowid", "added", "modified"):
+            if kwargs.get(column):
+                kwargs.pop()
+        return kwargs
+
