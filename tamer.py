@@ -255,8 +255,8 @@ class Tamer(sqlite3.Connection):
 
 
     @staticmethod
-    def _discard(**kwargs):
-        for column in ("rowid", "added", "modified"):
+    def _discard(*args, **kwargs):
+        for column in args:
             if kwargs.get(column):
                 kwargs.pop()
         return kwargs
