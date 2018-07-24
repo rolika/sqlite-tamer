@@ -36,7 +36,7 @@ class Tamer(sqlite3.Connection):
 
         Args:
             table_name: string containing a valid table-name
-            **cols:     columnname=constraints pairs. No constraint = empty string.
+            **cols:     columnname=constraints pairs. An empty string means no constraint.
 
         Returns:
             boolean:    indicates success
@@ -265,13 +265,4 @@ class Tamer(sqlite3.Connection):
         """SQL statement extension"""
         return " {} ".format(statement) + " {} ".format(logic).join("{}{} = ?"\
                .format("NOT " if logic == "NOT" else "", key) for key in kwargs.keys())
-
-
-    @staticmethod
-    def _discard(*system_props, **kwargs):
-        """discard system properties"""
-        for prop in system_props:
-            if kwargs.get(prop):
-                kwargs.pop()
-        return kwargs
 
