@@ -280,6 +280,28 @@ class Tamer(sqlite3.Connection):
         except sqlite3.Error as err:
             print("Couldn't rename table:", err, file=sys.stderr)
             return False
+    
+    def add(self, table, column, constraint=""):
+        """ Add a new column to table
+        
+        Args:
+            table:      string containing table to alter
+            column:     string containing columnname
+            constraint: string containing a column constraint
+
+        Returns:
+            boolean:    indicates success
+            
+        Reading:
+            https://sqlite.org/lang_altertable.html
+        """
+        try:
+            with self:
+                self.execute("ALTER TABLE {} ADD COLUMN {} {}".format(table, column, constraint))
+            return True
+        except sqlite3.Error as err:
+            print("Couldn't add new column:", err, file=sys.stderr)
+            return False
 
     @staticmethod
     def _stmnt(statement, logic, **kwargs):

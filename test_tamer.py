@@ -69,6 +69,9 @@ class TamerTest(unittest.TestCase):
     
     def test_rename(self):
         self.assertTrue(self.conn.rename("movies", "films"))
+    
+    def test_add(self):
+        self.assertTrue(self.conn.add("movies", "rating", "INT"))
 
     def tearDown(self):
         self.conn.destroy("movie.db")
