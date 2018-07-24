@@ -72,6 +72,9 @@ class TamerTest(unittest.TestCase):
     
     def test_add(self):
         self.assertTrue(self.conn.add("movies", "rating", "INT"))
+    
+    def test_getcolumns(self):
+        self.assertEqual(self.conn.get_columns("movies"), ("rowid", "title", "year", "watched"), "failed to get column names")
 
     def tearDown(self):
         self.conn.destroy("movie.db")

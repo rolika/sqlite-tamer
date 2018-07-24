@@ -302,6 +302,26 @@ class Tamer(sqlite3.Connection):
         except sqlite3.Error as err:
             print("Couldn't add new column:", err, file=sys.stderr)
             return False
+    
+    def get_columns(self, table):
+        """Return all user defined column names in table
+        
+        Args:
+            table:  string containing tablename
+        
+        Returns:
+            tuple of string containing user defined column names or None if an error occured
+        
+        Reading:
+            https://sqlite.org/pragma.html#pragma_table_info
+        """
+        try:
+            with self:
+                cols = self.execute("PRAGMA table_info({})".format(table))
+            return tuple(col["name"] for col in cols)
+        except sqlite3.Error as err:
+            print("Couldn't retrieve column names:", err, file=sys.stderr)
+            return None
 
     @staticmethod
     def _stmnt(statement, logic, **kwargs):
