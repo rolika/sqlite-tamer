@@ -260,6 +260,27 @@ class Tamer(sqlite3.Connection):
         pass
 
 
+    def rename(self, table, new):
+        """ Rename table in the database.
+        
+        Args:
+            table:  string containing table to rename
+            new:    string containing new name
+
+        Returns:
+            boolean:    indicates success
+            
+        Reading:
+            https://sqlite.org/lang_altertable.html
+        """
+        try:
+            with self:
+                self.execute("ALTER TABLE {} RENAME TO {}".format(table, new))
+            return True
+        except sqlite3.Error as err:
+            print("Couldn't rename table:", err, file=sys.stderr)
+            return False
+
     @staticmethod
     def _stmnt(statement, logic, **kwargs):
         """SQL statement extension"""

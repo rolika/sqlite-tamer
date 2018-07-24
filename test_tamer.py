@@ -66,6 +66,9 @@ class TamerTest(unittest.TestCase):
 
     def test_drop(self):
         self.assertTrue(self.conn.drop("movies"), "Failed to drop 'movies'")
+    
+    def test_rename(self):
+        self.assertTrue(self.conn.rename("movies", "films"))
 
     def tearDown(self):
         self.conn.destroy("movie.db")
