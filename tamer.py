@@ -342,10 +342,9 @@ class Tamer(sqlite3.Connection):
         try:
             with self:
                 tables = self.select("sqlite_master", "name", type="table")
-                #tables = self.execute("""SELECT name FROM sqlite_master WHERE type = 'table'""")
             return tuple(table["name"] for table in tables)
         except sqlite3.Error as err:
-            print("Couldn't retrieve column names:", err, file=sys.stderr)
+            print("Couldn't retrieve table names:", err, file=sys.stderr)
             return None
 
 
