@@ -29,18 +29,14 @@ class Tamer(sqlite3.Connection):
             sys.exit("Couldn't connect to database: {}".format(err))
 
 
-    def create(self, table_name, *column_names):
-        """Create table with provided columns.
+    def create(self, table_name, **cols):
+        """Create table with provided columns and constraints.
         The table will be created only if it doesn't exist already.
         Immediatley commits after succesful execution of statement.
 
         Args:
-            table_name:     string containing a valid table-name
-            *column_names:  strings separated by commas (arbitrary argument list)
-                            Addtionally created columns:
-                                1) rowid:       primary key (implicitly created by SQLite3
-                                2) added:       date of insertion
-                                3) modified:    date of last modification
+            table_name: string containing a valid table-name
+            **cols:     columnname=constraints pairs. No constraint = empty string.
 
         Returns:
             boolean:    indicates success
@@ -51,8 +47,9 @@ class Tamer(sqlite3.Connection):
         """
         try:
             with self:
-                self.execute("""CREATE TABLE IF NOT EXISTS {}({}, added, modified)"""\
-                             .format(table_name, ", ".join(column_names)))
+                self.execute("""CREATE TABLE IF NOT EXISTS {}({})"""\
+                             .format(table_name, ", ".join("{} {}".format(colname, constraint)\
+                             for colname, constraint in cols.items())))
             return True
         except sqlite3.Error as err:
             print("Couldn't create table:", err, file=sys.stderr)
@@ -65,8 +62,7 @@ class Tamer(sqlite3.Connection):
 
         Args:
             table:      string containing a valid table-name
-            **kwargs:   columnname=value separated by commas. Unintentionally provided values for
-                        'rowid', 'added' and 'modified' will be discarded.
+            **kwargs:   columnname=value separated by commas.
 
         Returns:
             primary key of last inserted row or None if insertion failed
@@ -75,8 +71,6 @@ class Tamer(sqlite3.Connection):
             https://sqlite.org/lang_insert.html
             https://docs.python.org/3/library/stdtypes.html#mapping-types-dict
         """
-        kwargs = self._discard("rowid", "added", "modified", **kwargs)
-
         lastrowid = None
         cols = ", ".join(kwargs.keys())
         qmarks = ", ".join("?" for _ in kwargs)
@@ -84,24 +78,23 @@ class Tamer(sqlite3.Connection):
 
         try:
             with self:
-                lastrowid = self.execute("""
-                INSERT INTO {}({}, added, modified) VALUES({}, CURRENT_DATE, CURRENT_DATE)"""\
+                lastrowid = self.execute("""INSERT INTO {}({}) VALUES({})"""\
                 .format(table, cols, qmarks), values).lastrowid
         except sqlite3.Error as err:
             print("Couldn't insert item:", err, file=sys.stderr)
         return lastrowid
 
 
-    def select(self, table, logic="OR", **kwargs):
-        """Select entire row(s) from database.
+    def select(self, table, logic="OR", *what, **where):
+        """Select row(s) from database.
         Using only the mandatory arguments selects everything.
-        Always selects primary key ('rowid') too.
 
         Args:
             table:      string containing a valid table-name
             logic:      logical operator in the WHERE clause. This simple function won't allow to
                         mix logical operators. Provided without kwargs won't have any effect.
-            **kwargs:   narrow selection with column=value pair(s). If more pairs are specified,
+            *what:      list of strings containing columnnames to select
+            **where:    narrow selection with column=value pair(s). If more pairs are specified,
                         they're bound together with the provided logical operator in the WHERE
                         clause of the query. The default 'OR' means any, 'AND' means all of the
                         conditions in kwargs must be met. 'NOT' is only partially supported, it
@@ -115,12 +108,17 @@ class Tamer(sqlite3.Connection):
             https://sqlite.org/lang_select.html
             https://www.w3schools.com/sql/sql_and_or.asp
         """
-        select_stmnt = """SELECT DISTINCT rowid, * FROM {}"""
+        
+        if what:
+            select_stmnt = """SELECT {}""".format(", ".join(col for col in what))
+        else:
+            select_stmnt = """SELECT *"""
+        select_stmnt += """ FROM {}"""
 
         try:
-            if kwargs:
-                select_stmnt += self._stmnt("WHERE", logic, **kwargs)
-                return self.execute(select_stmnt.format(table), tuple(kwargs.values()))
+            if where:
+                select_stmnt += self._stmnt("WHERE", logic, **where)
+                return self.execute(select_stmnt.format(table), tuple(where.values()))
             return self.execute(select_stmnt.format(table))
         except sqlite3.Error as err:
             print("Couldn't select any item:", err, file=sys.stderr)
@@ -181,10 +179,9 @@ class Tamer(sqlite3.Connection):
         Reading:
             https://sqlite.org/lang_update.html
         """
-        kwargs = self._discard("rowid", "added", "modified", **what)
 
-        update_stmnt = """ UPDATE {}""" + self._stmnt("SET", ",", **what)
-        update_stmnt += """, modified = CURRENT_DATE""" + self._stmnt("WHERE", logic, **where)
+        update_stmnt = """ UPDATE {}""" + self._stmnt("SET", ",", **what)\
+                                        + self._stmnt("WHERE", logic, **where)
 
         try:
             with self:

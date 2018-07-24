@@ -7,7 +7,7 @@ class TamerTest(unittest.TestCase):
 
     def setUp(self):
         self.conn = tamer.Tamer("movie.db")
-        self.conn.create("movies", "title", "year", "watched")
+        self.conn.create("movies", rowid="INTEGER PRIMARY KEY", title="TEXT", year="INT", watched="INT")
         self.conn.insert("movies", title="Star Wars", year=1977, watched=2012)
         self.conn.insert("movies", title="The Matrix", year=1999, watched=50)
         self.conn.insert("movies", title="Avengers", year=2012, watched=2012)
@@ -28,6 +28,9 @@ class TamerTest(unittest.TestCase):
 
     def test_select_all(self):
         self.assertEqual(len(tuple(self.conn.select("movies"))), 6, "Failed to fetch 6 rows")
+    
+    def test_select_columns(self):
+        self.assertEqual(len(tuple(self.conn.select("movies", "title", "year"))), 6, "Failed to fetch specified columns")
 
     def test_select_rowid(self):
         self.assertEqual(next(self.conn.select("movies", rowid=2))["title"], "The Matrix", "Failed to fetch The Matrix")
