@@ -275,11 +275,12 @@ class Tamer(sqlite3.Connection):
         """
         try:
             with self:
-                self.execute("ALTER TABLE {} RENAME TO {}".format(table, new))
+                self.execute("""ALTER TABLE {} RENAME TO {}""".format(table, new))
             return True
         except sqlite3.Error as err:
             print("Couldn't rename table:", err, file=sys.stderr)
             return False
+            
     
     def add(self, table, column, constraint=""):
         """ Add a new column to table
@@ -297,11 +298,13 @@ class Tamer(sqlite3.Connection):
         """
         try:
             with self:
-                self.execute("ALTER TABLE {} ADD COLUMN {} {}".format(table, column, constraint))
+                self.execute("""ALTER TABLE {} ADD COLUMN {} {}"""\
+                             .format(table, column, constraint))
             return True
         except sqlite3.Error as err:
             print("Couldn't add new column:", err, file=sys.stderr)
             return False
+            
     
     def get_columns(self, table):
         """Return all user defined column names in table
@@ -317,11 +320,34 @@ class Tamer(sqlite3.Connection):
         """
         try:
             with self:
-                cols = self.execute("PRAGMA table_info({})".format(table))
+                cols = self.execute("""PRAGMA table_info({})""".format(table))
             return tuple(col["name"] for col in cols)
         except sqlite3.Error as err:
             print("Couldn't retrieve column names:", err, file=sys.stderr)
             return None
+            
+    
+    def get_tables(self):
+        """Return all user defined table names in the database
+        
+        Args:
+            none
+        
+        Returns:
+            tuple of string containing user defined table names or None if an error occured
+        
+        Reading:
+            https://stackoverflow.com/questions/82875/
+        """
+        try:
+            with self:
+                tables = self.select("sqlite_master", "name", type="table")
+                #tables = self.execute("""SELECT name FROM sqlite_master WHERE type = 'table'""")
+            return tuple(table["name"] for table in tables)
+        except sqlite3.Error as err:
+            print("Couldn't retrieve column names:", err, file=sys.stderr)
+            return None
+
 
     @staticmethod
     def _stmnt(statement, logic, **kwargs):

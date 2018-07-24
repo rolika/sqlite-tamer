@@ -19,8 +19,7 @@ class TamerTest(unittest.TestCase):
         self.assertIsInstance(self.conn, sqlite3.Connection)
 
     def test_create(self):
-        table = self.conn.execute("""SELECT name FROM sqlite_master WHERE type = 'table'""")
-        self.assertEqual(next(table)["name"], "movies", "Creating 'movies' failed")
+        self.assertEqual(self.conn.get_tables(), ("movies",), "Creating 'movies' failed")
 
     def test_insert(self):
         rows = self.conn.execute("""SELECT * FROM movies""")
