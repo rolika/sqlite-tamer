@@ -216,6 +216,7 @@ class Tamer(sqlite3.Connection):
 
     def drop(self, table):
         """Drop (delete) table.
+        Commits after succesful execution.
 
         Args:
             table:  string containing a valid table-name
@@ -261,7 +262,8 @@ class Tamer(sqlite3.Connection):
 
 
     def rename(self, table, new):
-        """ Rename table in the database.
+        """Rename table in the database.
+        Commits after succesful execution.
         
         Args:
             table:  string containing table to rename
@@ -283,7 +285,8 @@ class Tamer(sqlite3.Connection):
             
     
     def add(self, table, column, constraint=""):
-        """ Add a new column to table
+        """Add a new column to table.
+        Commits after succesful execution.
         
         Args:
             table:      string containing table to alter
@@ -307,7 +310,7 @@ class Tamer(sqlite3.Connection):
             
     
     def get_columns(self, table):
-        """Return all user defined column names in table
+        """Return all user defined column names in table.
         
         Args:
             table:  string containing tablename
@@ -328,7 +331,7 @@ class Tamer(sqlite3.Connection):
             
     
     def get_tables(self):
-        """Return all user defined table names in the database
+        """Return all user defined table names in the database.
         
         Args:
             none
