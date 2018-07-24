@@ -29,14 +29,14 @@ class Tamer(sqlite3.Connection):
             sys.exit("Couldn't connect to database: {}".format(err))
 
 
-    def create(self, table_name, **cols):
+    def create(self, table, **cols):
         """Create table with provided columns and constraints.
         The table will be created only if it doesn't exist already.
         Immediatley commits after succesful execution of statement.
 
         Args:
-            table_name: string containing a valid table-name
-            **cols:     columnname=constraints pairs. An empty string means no constraint.
+            table:  string containing a valid table-name
+            **cols: columnname=constraints pairs. An empty string means no constraint.
 
         Returns:
             boolean:    indicates success
@@ -48,7 +48,7 @@ class Tamer(sqlite3.Connection):
         try:
             with self:
                 self.execute("""CREATE TABLE IF NOT EXISTS {}({})"""\
-                             .format(table_name, ", ".join("{} {}".format(colname, constraint)\
+                             .format(table, ", ".join("{} {}".format(colname, constraint)\
                              for colname, constraint in cols.items())))
             return True
         except sqlite3.Error as err:
@@ -214,11 +214,11 @@ class Tamer(sqlite3.Connection):
             return False
 
 
-    def drop(self, table_name):
+    def drop(self, table):
         """Drop (delete) table.
 
         Args:
-            table:      string containing a valid table-name
+            table:  string containing a valid table-name
 
         Returns:
             boolean:    indicates success
@@ -228,7 +228,7 @@ class Tamer(sqlite3.Connection):
         """
         try:
             with self:
-                self.execute("""DROP TABLE IF EXISTS {}""".format(table_name))
+                self.execute("""DROP TABLE IF EXISTS {}""".format(table))
             return True
         except sqlite3.Error as err:
             print("Couldn't drop table:", err, file=sys.stderr)
