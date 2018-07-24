@@ -56,13 +56,13 @@ class Tamer(sqlite3.Connection):
             return False
 
 
-    def insert(self, table, **kwargs):
+    def insert(self, table, **what):
         """Insert new row into database.
         Commits after succesful execution.
 
         Args:
-            table:      string containing a valid table-name
-            **kwargs:   columnname=value separated by commas.
+            table:  string containing a valid table-name
+            **what: columnname=value separated by commas.
 
         Returns:
             primary key of last inserted row or None if insertion failed
@@ -72,9 +72,9 @@ class Tamer(sqlite3.Connection):
             https://docs.python.org/3/library/stdtypes.html#mapping-types-dict
         """
         lastrowid = None
-        cols = ", ".join(kwargs.keys())
-        qmarks = ", ".join("?" for _ in kwargs)
-        values = tuple(kwargs.values())
+        cols = ", ".join(what.keys())
+        qmarks = ", ".join("?" for _ in what)
+        values = tuple(what.values())
 
         try:
             with self:
@@ -185,8 +185,7 @@ class Tamer(sqlite3.Connection):
 
         try:
             with self:
-                self.execute(update_stmnt.format(table),
-                            tuple(list(what.values()) + list(where.values())))
+                self.execute(update_stmnt.format(table), list(what.values()) + list(where.values()))
             return True
         except sqlite3.Error as err:
             print("Couldn't update item:", err, file=sys.stderr)
