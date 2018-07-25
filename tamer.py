@@ -32,7 +32,6 @@ class Tamer(sqlite3.Connection):
     def create(self, table, **cols):
         """Create table with provided columns and constraints.
         The table will be created only if it doesn't exist already.
-        Immediatley commits after succesful execution of statement.
 
         Args:
             table:  string containing a valid table-name
@@ -127,7 +126,6 @@ class Tamer(sqlite3.Connection):
 
     def delete(self, table, logic="OR", **kwargs):
         """Delete row(s) from database.
-        Commits after succesful execution.
 
         Args:
             table:      string containing a valid table-name
@@ -157,8 +155,7 @@ class Tamer(sqlite3.Connection):
 
 
     def update(self, table, what, logic="OR", **where):
-        """Update row(s).
-        Commits after succesful execution.
+        """Update values in existing row(s) in the database.
 
         Args:
             table:      string containing a valid table-name
@@ -215,8 +212,7 @@ class Tamer(sqlite3.Connection):
 
 
     def drop(self, table):
-        """Drop (delete) table.
-        Commits after succesful execution.
+        """Drop (delete) an entire table.
 
         Args:
             table:  string containing a valid table-name
@@ -262,8 +258,7 @@ class Tamer(sqlite3.Connection):
 
 
     def rename(self, table, new):
-        """Rename table in the database.
-        Commits after succesful execution.
+        """Rename existing table in the database.
         
         Args:
             table:  string containing table to rename
@@ -285,8 +280,7 @@ class Tamer(sqlite3.Connection):
             
     
     def add(self, table, column, constraint=""):
-        """Add a new column to table.
-        Commits after succesful execution.
+        """Add a new column to an existing table.
         
         Args:
             table:      string containing table to alter
