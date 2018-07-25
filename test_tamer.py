@@ -52,7 +52,9 @@ class TamerTest(unittest.TestCase):
         self.assertEqual(len(tuple(self.conn.select("movies"))), 4, "Failed to delete 2 rows")
 
     def test_update_1(self):
-        self.conn.update("movies", {"watched": 2013}, title="Star Wars")
+        watched = next(self.conn.select("movies", "AND", "watched", title="Star Wars", year=1977))["watched"]
+        watched += 1
+        self.conn.update("movies", {"watched": watched}, title="Star Wars")
         self.assertEqual(next(self.conn.select("movies", rowid=1))["watched"], 2013, "Failed to watch Star Wars one more time :-(")
 
     def test_update_2(self):
@@ -67,10 +69,12 @@ class TamerTest(unittest.TestCase):
         self.assertTrue(self.conn.drop("movies"), "Failed to drop 'movies'")
     
     def test_rename(self):
-        self.assertTrue(self.conn.rename("movies", "films"))
+        self.conn.rename("movies", "films")
+        self.assertEqual(self.conn.get_tables(), ("films",), "Renaming 'movies' failed")
     
     def test_add(self):
-        self.assertTrue(self.conn.add("movies", "rating", "INT"))
+        self.conn.add("movies", "rating", "INT")
+        self.assertEqual(self.conn.get_columns("movies"), ("rowid", "title", "year", "watched", "rating"), "Failed to add new column")
     
     def test_getcolumns(self):
         self.assertEqual(self.conn.get_columns("movies"), ("rowid", "title", "year", "watched"), "failed to get column names")
