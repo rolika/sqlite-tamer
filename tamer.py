@@ -167,8 +167,6 @@ class Tamer(sqlite3.Connection):
                         clause of the query. The default 'OR' means any, 'AND' means all of the
                         conditions in kwargs must be met. 'NOT' is only partially supported, it
                         makes only sense with one kwarg, but the latter won't be verified.
-                         Unintentionally provided values for 'rowid', 'added' and 'modified' will
-                         be discarded.
 
         Returns:
             boolean:    indicates success
