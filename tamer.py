@@ -233,7 +233,7 @@ class Tamer(sqlite3.Connection):
                 return False
             try:
                 with self:
-                    fkeys = "ON" if next(self.execute("""PRAGMA foreign_keys"""))[0] else "OFF"
+                    fkeys = "ON" if self.execute("""PRAGMA foreign_keys""").fetchone()[0] else "OFF"
                     tmp = "new_tamer_" + table
                     newcols = list(self.get_columns(table))
                     newcols.remove(column)
@@ -244,7 +244,7 @@ class Tamer(sqlite3.Connection):
                                             DROP TABLE {table};
                                             ALTER TABLE {tmp} RENAME TO {table};"""\
                                             .format(tmp=tmp, newcols=newcols, table=table))
-                    if len(tuple(self.execute("""PRAGMA foreign_key_check"""))):
+                    if len(self.execute("""PRAGMA foreign_key_check""").fetchall()):
                         raise sqlite3.Error("Foreign keys violated!")
                     self.execute("""PRAGMA foreign_keys={}""".format(fkeys))
                 return True

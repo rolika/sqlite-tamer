@@ -22,48 +22,47 @@ class TamerTest(unittest.TestCase):
         self.assertEqual(self.conn.get_tables(), ("movies",), "Creating 'movies' failed")
 
     def test_insert(self):
-        rows = self.conn.execute("""SELECT * FROM movies""")
-        self.assertEqual(len(tuple(rows)), 6, "Inserting 6 rows failed")
+        self.assertEqual(len(self.conn.execute("""SELECT * FROM movies""").fetchall()), 6, "Inserting 6 rows failed")
 
     def test_select_all(self):
-        self.assertEqual(len(tuple(self.conn.select("movies"))), 6, "Failed to fetch 6 rows")
+        self.assertEqual(len(self.conn.select("movies").fetchall()), 6, "Failed to fetch 6 rows")
     
     def test_select_columns(self):
-        self.assertEqual(len(tuple(self.conn.select("movies", "title", "year"))), 6, "Failed to fetch specified columns")
+        self.assertEqual(len(self.conn.select("movies", "title", "year").fetchall()), 6, "Failed to fetch specified columns")
 
     def test_select_rowid(self):
-        self.assertEqual(next(self.conn.select("movies", rowid=2))["title"], "The Matrix", "Failed to fetch The Matrix")
+        self.assertEqual(self.conn.select("movies", rowid=2).fetchone()["title"], "The Matrix", "Failed to fetch The Matrix")
 
     def test_select_or(self):
-        self.assertEqual(len(tuple(self.conn.select("movies", title="2012", year=2012, watched=2012))), 4, "Failed to fetch 4 rows")
+        self.assertEqual(len(self.conn.select("movies", title="2012", year=2012, watched=2012).fetchall()), 4, "Failed to fetch 4 rows")
 
     def test_select_and(self):
-        self.assertEqual(len(tuple(self.conn.select("movies", "AND", title="2012", year=2012, watched=2012))), 1, "Failed to fetch 1 row")
+        self.assertEqual(len(self.conn.select("movies", "AND", title="2012", year=2012, watched=2012).fetchall()), 1, "Failed to fetch 1 row")
 
     def test_select_not(self):
-        self.assertEqual(len(tuple(self.conn.select("movies", "NOT", watched=1))), 5, "Failed to fetch 5 rows")
+        self.assertEqual(len(self.conn.select("movies", "NOT", watched=1).fetchall()), 5, "Failed to fetch 5 rows")
 
     def test_delete_1(self):
         self.conn.delete("movies", "NOT", watched=1)
-        self.assertEqual(len(tuple(self.conn.select("movies"))), 1, "Failed to delete 5 rows")
+        self.assertEqual(len(self.conn.select("movies").fetchall()), 1, "Failed to delete 5 rows")
 
     def test_delete_2(self):
         self.conn.delete("movies", year=2012)
-        self.assertEqual(len(tuple(self.conn.select("movies"))), 4, "Failed to delete 2 rows")
+        self.assertEqual(len(self.conn.select("movies").fetchall()), 4, "Failed to delete 2 rows")
 
     def test_update_1(self):
         watched = next(self.conn.select("movies", "AND", "watched", title="Star Wars", year=1977))["watched"]
         watched += 1
         self.conn.update("movies", {"watched": watched}, title="Star Wars")
-        self.assertEqual(next(self.conn.select("movies", rowid=1))["watched"], 2013, "Failed to watch Star Wars one more time :-(")
+        self.assertEqual(self.conn.select("movies", rowid=1).fetchone()["watched"], 2013, "Failed to watch Star Wars one more time :-(")
 
     def test_update_2(self):
         self.conn.update("movies", {"title": "Star Wars: A new hope", "watched": 2013}, logic="AND", title="Star Wars", year=1977)
-        self.assertEqual(next(self.conn.select("movies", rowid=1))["title"], "Star Wars: A new hope", "Failed to update to Star Wars: A new hope")
+        self.assertEqual(self.conn.select("movies", rowid=1).fetchone()["title"], "Star Wars: A new hope", "Failed to update to Star Wars: A new hope")
 
     def test_update_3(self):
         self.conn.update("movies", {"title": "Star Wars: A new hope", "watched": 2013}, logic="AND", title="Star Wars", year=1978)
-        self.assertNotEqual(next(self.conn.select("movies", rowid=1))["title"], "Star Wars: A new hope", "Updated the wrong Star Wars movie")
+        self.assertNotEqual(self.conn.select("movies", rowid=1).fetchone()["title"], "Star Wars: A new hope", "Updated the wrong Star Wars movie")
 
     def test_drop_table(self):
         self.conn.drop("movies")
