@@ -27,6 +27,7 @@ class Tamer(sqlite3.Connection):
             self.row_factory = sqlite3.Row
         except sqlite3.Error as err:
             sys.exit("Couldn't connect to database: {}".format(err))
+        self._db_name = db_name
 
 
     def create(self, table, **cols):
@@ -106,8 +107,7 @@ class Tamer(sqlite3.Connection):
         Reading:
             https://sqlite.org/lang_select.html
             https://www.w3schools.com/sql/sql_and_or.asp
-        """
-        
+        """        
         if what:
             select_stmnt = """SELECT {}""".format(", ".join(col for col in what))
         else:
@@ -174,7 +174,6 @@ class Tamer(sqlite3.Connection):
         Reading:
             https://sqlite.org/lang_update.html
         """
-
         update_stmnt = """ UPDATE {}""" + self._stmnt("SET", ",", **what)\
                                         + self._stmnt("WHERE", logic, **where)
 
@@ -187,72 +186,68 @@ class Tamer(sqlite3.Connection):
             return False
 
 
-    def destroy(self, db_name):
-        """Delete database file.
-        May be necessary as SQLite doesn't support 'DROP DATABASE'.
-
-        Args:
-            db_name: string containing a database-name (could also be a path-like object)
-
-        Returns:
-            boolean:    indicates success
-
-        Reading:
-            https://docs.python.org/3/library/os.html#os.unlink
-        """
-        try:
-            self.close()
-            os.unlink(db_name)
-            return True
-        except (OSError, sqlite3.Error) as err:
-            print("Couldn't delete database:", err, file=sys.stderr)
-            return False
-
-
-    def drop(self, table):
-        """Drop (delete) an entire table.
+    def drop(self, table=None, column=None):
+        """Drop (delete) database, table or column.
+        Without table and column, the method deletes the database-file. With table provided, it
+        drops the table. With table and column provided, that column will be deleted.
+        If a column should be dropped, the method only verifies that no foreign key references are
+        violated. Indexes, triggers, views must be recreated by the user.
 
         Args:
             table:  string containing a valid table-name
+            column: string containing a valid column-name
 
         Returns:
             boolean:    indicates success
 
         Reading:
+            https://sqlite.org/lang_altertable.html
             https://sqlite.org/lang_droptable.html
-        """
-        try:
-            with self:
-                self.execute("""DROP TABLE IF EXISTS {}""".format(table))
-            return True
-        except sqlite3.Error as err:
-            print("Couldn't drop table:", err, file=sys.stderr)
-            return False
+            https://docs.python.org/3/library/os.html#os.unlink
+        """        
+        if table and column:
+            if  column not in self.get_columns(table):
+                print("'{}' doesn't exist in '{}'".format(column, table), file=sys.stderr)
+                return False
+            try:
+                fkeys = "ON" if next(self.execute("""PRAGMA foreign_keys"""))[0] else "OFF"
+                tmptable = "new_tamer_" + table
+                newcols = list(self.get_columns(table))
+                newcols.remove(column)
+                newcols = ", ".join(newcols)
+                self.executescript("""  PRAGMA foreign_keys=OFF;
+                                        CREATE TABLE {tmptable} ({newcols});
+                                        INSERT INTO {tmptable} SELECT {newcols} FROM {table};
+                                        DROP TABLE {table};
+                                        ALTER TABLE {tmptable} RENAME TO {table};"""\
+                                        .format(tmptable=tmptable, newcols=newcols, table=table))
+                if len(tuple(self.execute("""PRAGMA foreign_key_check"""))):
+                    raise sqlite3.Error("Foreign keys violated!")
+                self.commit()
+                self.execute("""PRAGMA foreign_keys={};""".format(fkeys))
+                return True
+            except sqlite3.Error as err:
+                self.rollback()
+                print("Couldn't drop column:", err, file=sys.stderr)
+                return False
+            
+        elif table:
+            try:
+                with self:
+                    self.execute("""DROP TABLE IF EXISTS {}""".format(table))
+                return True
+            except sqlite3.Error as err:
+                print("Couldn't drop table:", err, file=sys.stderr)
+                return False
 
-
-    def fill(csv_filename, tablename=None, overwrite=False, **columns):
-        """Import records from a csv-file
-        Default behavior: create a new table in the database with the name of the csv-file (without
-        .csv). If the csv comes with header, use the fieldnames as column-names, if not, use
-        filename_i, where i is index starting from 0. The csv-rows gets inserted into the table.
-
-        Args:
-            csv_filename:   string containing a valid csv-file
-            tablename:      string containing a table name. If existing, proceed as in the overwrite
-                            argument described.
-            overwrite:      False: use the provided existing table (appending rows)
-                            True: drop the provided existing table and create a new one
-            **columns:      if provided, use these column-names
-        
-        Returns:
-            primary key of last inserted row or None if operation failed
-        
-        Reading:
-            https://docs.python.org/3/library/csv.html
-            https://www.python.org/dev/peps/pep-0305/
-            https://github.com/rufuspollock/csv2sqlite (although i want something far more simpler)
-        """
-        pass
+        else:
+            try:
+                self.close()
+                os.unlink(self._db_name)
+                return True
+            except (OSError, sqlite3.Error) as err:
+                print("Couldn't delete database:", err, file=sys.stderr)
+                return False
 
 
     def rename(self, table, new):
@@ -308,7 +303,7 @@ class Tamer(sqlite3.Connection):
             table:  string containing tablename
         
         Returns:
-            tuple of string containing user defined column names or None if an error occured
+            tuple of strings containing user defined column names or None if an error occured
         
         Reading:
             https://sqlite.org/pragma.html#pragma_table_info
@@ -329,7 +324,7 @@ class Tamer(sqlite3.Connection):
             none
         
         Returns:
-            tuple of string containing user defined table names or None if an error occured
+            tuple of strings containing user defined table names or None if an error occured
         
         Reading:
             https://stackoverflow.com/questions/82875/

@@ -65,8 +65,17 @@ class TamerTest(unittest.TestCase):
         self.conn.update("movies", {"title": "Star Wars: A new hope", "watched": 2013}, logic="AND", title="Star Wars", year=1978)
         self.assertNotEqual(next(self.conn.select("movies", rowid=1))["title"], "Star Wars: A new hope", "Updated the wrong Star Wars movie")
 
-    def test_drop(self):
-        self.assertTrue(self.conn.drop("movies"), "Failed to drop 'movies'")
+    def test_drop_table(self):
+        self.conn.drop("movies")
+        self.assertFalse(self.conn.get_tables(), "Failed to drop 'movies'")
+
+    def test_drop_column_1(self):
+        self.conn.drop("movies", "watched")
+        self.assertEqual(self.conn.get_columns("movies"), ("rowid", "title", "year"), "Failed to drop 'watched' column")
+
+    def test_drop_column_2(self):
+        self.conn.drop("movies", "watches")
+        self.assertNotEqual(self.conn.get_columns("movies"), ("rowid", "title", "year"), "Failed to maintain 'watched' column")
     
     def test_rename(self):
         self.conn.rename("movies", "films")
@@ -80,7 +89,7 @@ class TamerTest(unittest.TestCase):
         self.assertEqual(self.conn.get_columns("movies"), ("rowid", "title", "year", "watched"), "failed to get column names")
 
     def tearDown(self):
-        self.conn.destroy("movie.db")
+        self.conn.drop()  # test to drop database file
 
 if __name__ == "__main__":
     unittest.main()
