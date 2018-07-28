@@ -225,6 +225,7 @@ class Tamer(sqlite3.Connection):
         Reading:
             https://sqlite.org/lang_altertable.html
             https://sqlite.org/lang_droptable.html
+            https://www.sqlite.org/faq.html#q11
             https://docs.python.org/3/library/os.html#os.unlink
         """        
         if table and column:
@@ -369,7 +370,7 @@ class Tamer(sqlite3.Connection):
 
 
     def _sql(self, table, column):
-        """Cut out column from table's create statement"""
+        """Recreate table's create statement without column"""
         sql = self.select("sqlite_master", "sql", type="table").fetchone()["sql"].partition(column)
         comma = sql[2].find(",")  # index of first comma after column to remove
         if comma < 0:  # last column in the create statement
