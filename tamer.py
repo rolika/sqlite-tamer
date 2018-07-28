@@ -234,16 +234,18 @@ class Tamer(sqlite3.Connection):
             try:
                 with self:
                     fkeys = "ON" if self.execute("""PRAGMA foreign_keys""").fetchone()[0] else "OFF"
-                    tmp = "new_tamer_" + table
                     newcols = list(self.get_columns(table))
                     newcols.remove(column)
                     newcols = ", ".join(newcols)
                     self.executescript("""  PRAGMA foreign_keys=OFF;
-                                            CREATE TABLE {tmp} ({newcols});
-                                            INSERT INTO {tmp} SELECT {newcols} FROM {table};
+                                            CREATE TEMPORARY TABLE tamer_tmp ({newcols});
+                                            INSERT INTO tamer_tmp SELECT {newcols} FROM {table};
                                             DROP TABLE {table};
-                                            ALTER TABLE {tmp} RENAME TO {table};"""\
-                                            .format(tmp=tmp, newcols=newcols, table=table))
+                                            {create_table_again};
+                                            INSERT INTO {table} SELECT {newcols} FROM tamer_tmp;
+                                            DROP TABLE tamer_tmp;"""\
+                                            .format(newcols=newcols, table=table,
+                                                    create_table_again=self._sql(table, column)))
                     if len(self.execute("""PRAGMA foreign_key_check""").fetchall()):
                         raise sqlite3.Error("Foreign keys violated!")
                     self.execute("""PRAGMA foreign_keys={}""".format(fkeys))
@@ -364,4 +366,13 @@ class Tamer(sqlite3.Connection):
         """SQL statement extension"""
         return " {} ".format(statement) + " {} ".format(logic).join("{}{} = ?"\
                .format("NOT " if logic == "NOT" else "", key) for key in kwargs.keys())
+
+
+    def _sql(self, table, column):
+        """Cut out column from table's create statement"""
+        sql = self.select("sqlite_master", "sql", type="table").fetchone()["sql"].partition(column)
+        comma = sql[2].find(",")  # index of first comma after column to remove
+        if comma < 0:  # last column in the create statement
+            return sql[0][:sql[0].rfind(",")] + ")"  # need to cut off last comma before column
+        return sql[0] + sql[2][comma+1:]  # jump over column in last part
 
