@@ -37,13 +37,13 @@ class TamerTest(unittest.TestCase):
         self.assertEqual(len(self.conn.select("movies", title="2012", year=2012, watched=2012).fetchall()), 4, "Failed to fetch 4 rows")
 
     def test_select_and(self):
-        self.assertEqual(len(self.conn.select("movies", "AND", title="2012", year=2012, watched=2012).fetchall()), 1, "Failed to fetch 1 row")
+        self.assertEqual(len(self.conn.select("movies", logic="AND", title="2012", year=2012, watched=2012).fetchall()), 1, "Failed to fetch 1 row")
 
     def test_select_not(self):
-        self.assertEqual(len(self.conn.select("movies", "NOT", watched=1).fetchall()), 5, "Failed to fetch 5 rows")
+        self.assertEqual(len(self.conn.select("movies", logic="NOT", watched=1).fetchall()), 5, "Failed to fetch 5 rows")
 
     def test_delete_1(self):
-        self.conn.delete("movies", "NOT", watched=1)
+        self.conn.delete("movies", logic="NOT", watched=1)
         self.assertEqual(len(self.conn.select("movies").fetchall()), 1, "Failed to delete 5 rows")
 
     def test_delete_2(self):
@@ -51,7 +51,7 @@ class TamerTest(unittest.TestCase):
         self.assertEqual(len(self.conn.select("movies").fetchall()), 4, "Failed to delete 2 rows")
 
     def test_update_1(self):
-        watched = next(self.conn.select("movies", "AND", "watched", title="Star Wars", year=1977))["watched"]
+        watched = next(self.conn.select("movies", "watched", logic="AND", title="Star Wars", year=1977))["watched"]
         watched += 1
         self.conn.update("movies", {"watched": watched}, title="Star Wars")
         self.assertEqual(self.conn.select("movies", rowid=1).fetchone()["watched"], 2013, "Failed to watch Star Wars one more time :-(")
@@ -86,6 +86,12 @@ class TamerTest(unittest.TestCase):
     
     def test_getcolumns(self):
         self.assertEqual(self.conn.get_columns("movies"), ("rowid", "title", "year", "watched"), "failed to get column names")
+    
+    def test_orderby_asc(self):
+        self.assertEqual(self.conn.select("movies", "title", orderby="title, year").fetchone()["title"], "2012", "failed to order ascending")
+    
+    def test_orderby_desc(self):
+        self.assertEqual(self.conn.select("movies", "title", orderby="title", ordering="DESC").fetchone()["title"], "The Matrix", "failed to order descending")
 
     def tearDown(self):
         self.conn.drop()  # test to drop database file

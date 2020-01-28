@@ -78,13 +78,13 @@ class Tamer(sqlite3.Connection):
             return False
 
 
-    def insert(self, table, **what):
+    def insert(self, table, **kwargs):
         """Insert new row into database.
         Commits after succesful execution.
 
         Args:
-            table:  string containing a valid table-name
-            **what: columnname=value separated by commas.
+            table:      string containing a valid table-name
+            **kwargs:   columnname=value separated by commas.
 
         Returns:
             primary key of last inserted row or None if insertion failed
@@ -94,9 +94,9 @@ class Tamer(sqlite3.Connection):
             https://docs.python.org/3/library/stdtypes.html#mapping-types-dict
         """
         lastrowid = None
-        cols = ", ".join(what.keys())
-        qmarks = ", ".join("?" for _ in what)
-        values = tuple(what.values())
+        cols = ", ".join(kwargs.keys())
+        qmarks = ", ".join("?" for _ in kwargs)
+        values = tuple(kwargs.values())
 
         try:
             with self:
@@ -107,20 +107,19 @@ class Tamer(sqlite3.Connection):
         return lastrowid
 
 
-    def select(self, table, logic="OR", *what, **where):
+    def select(self, table, *cols, **kwargs):
         """Select row(s) from database.
         Using only the mandatory arguments selects everything.
 
         Args:
             table:      string containing a valid table-name
-            logic:      logical operator in the WHERE clause. This simple function won't allow to
-                        mix logical operators. Provided without kwargs won't have any effect.
-            *what:      list of strings containing columnnames to select
-            **where:    narrow selection with column=value pair(s). If more pairs are specified,
+            *cols:      list of strings containing columnnames to select
+            **kwargs:   narrow selection with column=value pair(s). If more pairs are specified,
                         they're bound together with the provided logical operator in the WHERE
-                        clause of the query. The default 'OR' means any, 'AND' means all of the
+                        clause of the query. The default "logic"='OR' means any, 'AND' means all of the
                         conditions in kwargs must be met. 'NOT' is only partially supported, it
-                        makes only sense with one kwarg, but the latter won't be verified.
+                        makes only sense with one kwarg, but the latter won't be verified. Provide
+                        the "orderby" clause and "ordering"="DESC" if you want desceding order
 
         Returns:
             Cursor-object of resulting query (powered as row_factory) or
@@ -130,32 +129,37 @@ class Tamer(sqlite3.Connection):
             https://sqlite.org/lang_select.html
             https://www.w3schools.com/sql/sql_and_or.asp
         """        
-        if what:
-            select_stmnt = """SELECT {}""".format(", ".join(col for col in what))
+        if cols:
+            select_stmnt = """SELECT {}""".format(", ".join(col for col in cols))
         else:
             select_stmnt = """SELECT *"""
         select_stmnt += """ FROM {}"""
+        
+        logic = kwargs.pop("logic", "OR")
+        orderby = kwargs.pop("orderby", "")
+        ordering = kwargs.pop("ordering", "ASC")
+
+        if orderby:
+            orderby = " ORDER BY " + orderby + " " + ordering
 
         try:
-            if where:
-                select_stmnt += self._stmnt("WHERE", logic, **where)
-                return self.execute(select_stmnt.format(table), tuple(where.values()))
-            return self.execute(select_stmnt.format(table))
+            if kwargs:
+                select_stmnt += self._stmnt("WHERE", logic, **kwargs)
+                return self.execute(select_stmnt.format(table) + orderby, tuple(kwargs.values()))
+            return self.execute(select_stmnt.format(table) + orderby)
         except sqlite3.Error as err:
             print("Couldn't select any item:", err, file=sys.stderr)
             return None
 
 
-    def delete(self, table, logic="OR", **kwargs):
+    def delete(self, table, **kwargs):
         """Delete row(s) from database.
 
         Args:
             table:      string containing a valid table-name
-            logic:      logical operator in the WHERE clause. This simple function won't allow to
-                        mix logical operators. Provided without kwargs has no sense.
             **kwargs:   specify criteria with column=value pair(s). If more pairs are specified,
                         they're bound together with the provided logical operator in the WHERE
-                        clause of the query. The default 'OR' means any, 'AND' means all of the
+                        clause of the query. The default "logic"='OR' means any, 'AND' means all of the
                         conditions in kwargs must be met. 'NOT' is only partially supported, it
                         makes only sense with one kwarg, but the latter won't be verified.
 
@@ -165,6 +169,7 @@ class Tamer(sqlite3.Connection):
         Reading:
             https://sqlite.org/lang_delete.html
         """
+        logic = kwargs.pop("logic", "OR")
         delete_stmnt = """DELETE FROM {}""" + self._stmnt("WHERE", logic, **kwargs)
 
         try:
@@ -176,17 +181,15 @@ class Tamer(sqlite3.Connection):
             return False
 
 
-    def update(self, table, what, logic="OR", **where):
+    def update(self, table, what, **where):
         """Update values in existing row(s) in the database.
 
         Args:
             table:      string containing a valid table-name
             what:       dictionary containing column=new_value pairs
-            logic:      logical operator in the WHERE clause. This simple function won't allow to
-                        mix logical operators.
             **where:    update criteria as column=value pair(s). If more pairs are specified,
                         they're bound together with the provided logical operator in the WHERE
-                        clause of the query. The default 'OR' means any, 'AND' means all of the
+                        clause of the query. The default "logic"='OR' means any, 'AND' means all of the
                         conditions in kwargs must be met. 'NOT' is only partially supported, it
                         makes only sense with one kwarg, but the latter won't be verified.
 
@@ -196,6 +199,7 @@ class Tamer(sqlite3.Connection):
         Reading:
             https://sqlite.org/lang_update.html
         """
+        logic = where.pop("logic", "OR")
         update_stmnt = """ UPDATE {}""" + self._stmnt("SET", ",", **what)\
                                         + self._stmnt("WHERE", logic, **where)
 
