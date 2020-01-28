@@ -116,10 +116,13 @@ class Tamer(sqlite3.Connection):
             *cols:      list of strings containing columnnames to select
             **kwargs:   narrow selection with column=value pair(s). If more pairs are specified,
                         they're bound together with the provided logical operator in the WHERE
-                        clause of the query. The default "logic"='OR' means any, 'AND' means all of the
-                        conditions in kwargs must be met. 'NOT' is only partially supported, it
-                        makes only sense with one kwarg, but the latter won't be verified. Provide
-                        the "orderby" clause and "ordering"="DESC" if you want desceding order
+                        clause of the query.
+                        Special keys:
+                            logic:      defaults to OR. NOT is only partially supported, it
+                                        makes only sense with one kwarg, but the latter won't be
+                                        verified.
+                            orderby:    specify the ORDER BY clause
+                            ordering:   defaults to ASC, specify DESC if you want descending order
 
         Returns:
             Cursor-object of resulting query (powered as row_factory) or
@@ -128,13 +131,13 @@ class Tamer(sqlite3.Connection):
         Reading:
             https://sqlite.org/lang_select.html
             https://www.w3schools.com/sql/sql_and_or.asp
-        """        
+        """
         if cols:
             select_stmnt = """SELECT {}""".format(", ".join(col for col in cols))
         else:
             select_stmnt = """SELECT *"""
         select_stmnt += """ FROM {}"""
-        
+
         logic = kwargs.pop("logic", "OR")
         orderby = kwargs.pop("orderby", "")
         ordering = kwargs.pop("ordering", "ASC")
@@ -159,9 +162,11 @@ class Tamer(sqlite3.Connection):
             table:      string containing a valid table-name
             **kwargs:   specify criteria with column=value pair(s). If more pairs are specified,
                         they're bound together with the provided logical operator in the WHERE
-                        clause of the query. The default "logic"='OR' means any, 'AND' means all of the
-                        conditions in kwargs must be met. 'NOT' is only partially supported, it
-                        makes only sense with one kwarg, but the latter won't be verified.
+                        clause of the query.
+                        Special keys:
+                            logic:      defaults to OR. NOT is only partially supported, it
+                                        makes only sense with one kwarg, but the latter won't be
+                                        verified.
 
         Returns:
             boolean:    indicates success
@@ -189,9 +194,11 @@ class Tamer(sqlite3.Connection):
             what:       dictionary containing column=new_value pairs
             **where:    update criteria as column=value pair(s). If more pairs are specified,
                         they're bound together with the provided logical operator in the WHERE
-                        clause of the query. The default "logic"='OR' means any, 'AND' means all of the
-                        conditions in kwargs must be met. 'NOT' is only partially supported, it
-                        makes only sense with one kwarg, but the latter won't be verified.
+                        clause of the query.
+                        Special keys:
+                            logic:      defaults to OR. NOT is only partially supported, it
+                                        makes only sense with one kwarg, but the latter won't be
+                                        verified.
 
         Returns:
             boolean:    indicates success
@@ -231,7 +238,7 @@ class Tamer(sqlite3.Connection):
             https://sqlite.org/lang_droptable.html
             https://www.sqlite.org/faq.html#q11
             https://docs.python.org/3/library/os.html#os.unlink
-        """        
+        """
         if table and column:
             if  column not in self.get_columns(table):
                 print("'{}' doesn't exist in '{}'".format(column, table), file=sys.stderr)
@@ -258,7 +265,7 @@ class Tamer(sqlite3.Connection):
             except sqlite3.Error as err:
                 print("Couldn't drop column:", err, file=sys.stderr)
                 return False
-            
+
         elif table:
             try:
                 with self:
@@ -280,14 +287,14 @@ class Tamer(sqlite3.Connection):
 
     def rename(self, table, new):
         """Rename existing table in the database.
-        
+
         Args:
             table:  string containing table to rename
             new:    string containing new name
 
         Returns:
             boolean:    indicates success
-            
+
         Reading:
             https://sqlite.org/lang_altertable.html
         """
@@ -298,11 +305,11 @@ class Tamer(sqlite3.Connection):
         except sqlite3.Error as err:
             print("Couldn't rename table:", err, file=sys.stderr)
             return False
-            
-    
+
+
     def add(self, table, column, constraint=""):
         """Add a new column to an existing table.
-        
+
         Args:
             table:      string containing table to alter
             column:     string containing columnname
@@ -310,7 +317,7 @@ class Tamer(sqlite3.Connection):
 
         Returns:
             boolean:    indicates success
-            
+
         Reading:
             https://sqlite.org/lang_altertable.html
         """
@@ -322,17 +329,17 @@ class Tamer(sqlite3.Connection):
         except sqlite3.Error as err:
             print("Couldn't add new column:", err, file=sys.stderr)
             return False
-            
-    
+
+
     def get_columns(self, table):
         """Return all user defined column names in table.
-        
+
         Args:
             table:  string containing tablename
-        
+
         Returns:
             tuple of strings containing user defined column names or None if an error occured
-        
+
         Reading:
             https://sqlite.org/pragma.html#pragma_table_info
         """
@@ -343,17 +350,17 @@ class Tamer(sqlite3.Connection):
         except sqlite3.Error as err:
             print("Couldn't retrieve column names:", err, file=sys.stderr)
             return None
-            
-    
+
+
     def get_tables(self):
         """Return all user defined table names in the database.
-        
+
         Args:
             none
-        
+
         Returns:
             tuple of strings containing user defined table names or None if an error occured
-        
+
         Reading:
             https://stackoverflow.com/questions/82875/
         """
