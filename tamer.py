@@ -123,6 +123,7 @@ class Tamer(sqlite3.Connection):
                                         verified.
                             orderby:    specify the ORDER BY clause
                             ordering:   defaults to ASC, specify DESC if you want descending order
+                            distinct:   select distinct values
 
         Returns:
             Cursor-object of resulting query (powered as row_factory) or
@@ -132,10 +133,15 @@ class Tamer(sqlite3.Connection):
             https://sqlite.org/lang_select.html
             https://www.w3schools.com/sql/sql_and_or.asp
         """
+        distinct = kwargs.pop("distinct", "")
+        if distinct:
+            distinct = " DISTINCT"
+
         if cols:
-            select_stmnt = """SELECT {}""".format(", ".join(col for col in cols))
+            select_stmnt = """SELECT{} {}""".format(distinct, ", ".join(col for col in cols))
+            print(select_stmnt)
         else:
-            select_stmnt = """SELECT *"""
+            select_stmnt = """SELECT{} *""".format(distinct)
         select_stmnt += """ FROM {}"""
 
         logic = kwargs.pop("logic", "OR")

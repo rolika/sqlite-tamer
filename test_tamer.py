@@ -41,6 +41,9 @@ class TamerTest(unittest.TestCase):
 
     def test_select_not(self):
         self.assertEqual(len(self.conn.select("movies", logic="NOT", watched=1).fetchall()), 5, "Failed to fetch 5 rows")
+    
+    def test_select_distinct(self):
+        self.assertEqual(len(self.conn.execute("""SELECT DISTINCT title FROM movies""").fetchall()), 5, "there should be only five")
 
     def test_delete_1(self):
         self.conn.delete("movies", logic="NOT", watched=1)
