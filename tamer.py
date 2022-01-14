@@ -59,7 +59,7 @@ class Tamer(sqlite3.Connection):
         Args:
             table:      string containing a valid table-name
             *cols:      tuple of column name strings without constraints
-            **constrs:  columnname=constraints pairs
+            **constr:   columnname=constraints pairs
 
         Returns:
             boolean:    indicates success
@@ -69,7 +69,7 @@ class Tamer(sqlite3.Connection):
             https://docs.python.org/3/tutorial/controlflow.html#arbitrary-argument-lists
         """
         cols = {col: "" for col in cols}
-        cols.update(constrs)
+        cols.update(constr)
         try:
             with self:
                 self.execute("""CREATE TABLE IF NOT EXISTS {}({})"""\
