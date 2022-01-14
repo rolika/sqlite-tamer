@@ -7,7 +7,7 @@ class TamerTest(unittest.TestCase):
 
     def setUp(self):
         self.conn = tamer.Tamer("movie.db")
-        self.conn.create("movies", rowid="INTEGER PRIMARY KEY", title="TEXT", year="INT", watched="INT")
+        self.conn.create("movies", "title", "year", "watched", rowid="INTEGER PRIMARY KEY")
         self.conn.insert("movies", title="Star Wars", year=1977, watched=2012)
         self.conn.insert("movies", title="The Matrix", year=1999, watched=50)
         self.conn.insert("movies", title="Avengers", year=2012, watched=2012)
@@ -26,7 +26,7 @@ class TamerTest(unittest.TestCase):
 
     def test_select_all(self):
         self.assertEqual(len(self.conn.select("movies").fetchall()), 6, "Failed to fetch 6 rows")
-    
+
     def test_select_columns(self):
         self.assertEqual(len(self.conn.select("movies", "title", "year").fetchall()), 6, "Failed to fetch specified columns")
 
@@ -41,7 +41,7 @@ class TamerTest(unittest.TestCase):
 
     def test_select_not(self):
         self.assertEqual(len(self.conn.select("movies", logic="NOT", watched=1).fetchall()), 5, "Failed to fetch 5 rows")
-    
+
     def test_select_distinct(self):
         self.assertEqual(len(self.conn.select("movies", "title", distinct=True, title="2012").fetchall()), 1, "there should be only one")
 
@@ -73,26 +73,26 @@ class TamerTest(unittest.TestCase):
 
     def test_drop_column_1(self):
         self.conn.drop("movies", "watched")
-        self.assertEqual(self.conn.get_columns("movies"), ("rowid", "title", "year"), "Failed to drop 'watched' column")
+        self.assertEqual(self.conn.get_columns("movies"), ("title", "year", "rowid"), "Failed to drop 'watched' column")
 
     def test_drop_column_2(self):
         self.conn.drop("movies", "watches")
-        self.assertNotEqual(self.conn.get_columns("movies"), ("rowid", "title", "year"), "Failed to maintain 'watched' column")
-    
+        self.assertNotEqual(self.conn.get_columns("movies"), ("title", "year", "rowid"), "Failed to maintain 'watched' column")
+
     def test_rename(self):
         self.conn.rename("movies", "films")
         self.assertEqual(self.conn.get_tables(), ("films",), "Renaming 'movies' failed")
-    
+
     def test_add(self):
         self.conn.add("movies", "rating", "INT")
-        self.assertEqual(self.conn.get_columns("movies"), ("rowid", "title", "year", "watched", "rating"), "Failed to add new column")
-    
+        self.assertEqual(self.conn.get_columns("movies"), ("title", "year", "watched", "rowid", "rating"), "Failed to add new column")
+
     def test_getcolumns(self):
-        self.assertEqual(self.conn.get_columns("movies"), ("rowid", "title", "year", "watched"), "failed to get column names")
-    
+        self.assertEqual(self.conn.get_columns("movies"), ("title", "year", "watched", "rowid"), "failed to get column names")
+
     def test_orderby_asc(self):
         self.assertEqual(self.conn.select("movies", "title", orderby="title, year").fetchone()["title"], "2012", "failed to order ascending")
-    
+
     def test_orderby_desc(self):
         self.assertEqual(self.conn.select("movies", "title", orderby="title", ordering="DESC").fetchone()["title"], "The Matrix", "failed to order descending")
 
