@@ -32,7 +32,7 @@ import os
 
 class Tamer(sqlite3.Connection):
     """Instanciated as a subclass of SQLite-connection object."""
-    def __init__(self, db_name=":memory:"):
+    def __init__(self, db_name=":memory:") -> None:
         """Initialize SQLite3 db-connection.
         If the database file doesn't exist, it'll be created.
         Makes use of Row-object to access through column-names (and indexing).
@@ -52,13 +52,14 @@ class Tamer(sqlite3.Connection):
         self._db_name = db_name
 
 
-    def create(self, table, **cols):
-        """Create table with provided columns and constraints.
+    def create(self, table, *cols, **constr) -> bool:
+        """Create table with provided columns and/or constraints.
         The table will be created only if it doesn't exist already.
 
         Args:
-            table:  string containing a valid table-name
-            **cols: columnname=constraints pairs. An empty string means no constraint.
+            table:      string containing a valid table-name
+            *cols:      tuple of column name strings without constraints
+            **constr:   columnname=constraints pairs
 
         Returns:
             boolean:    indicates success
@@ -67,6 +68,8 @@ class Tamer(sqlite3.Connection):
             https://sqlite.org/lang_createtable.html
             https://docs.python.org/3/tutorial/controlflow.html#arbitrary-argument-lists
         """
+        cols = {col: "" for col in cols}
+        cols.update(constr)
         try:
             with self:
                 self.execute("""CREATE TABLE IF NOT EXISTS {}({})"""\
