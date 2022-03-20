@@ -60,6 +60,45 @@ class Tamer(sqlite3.Connection):
         """On deletion or garbage collection detach any databases. """
         self.detach(*self._attach)  # the single asteriks * unpacks the keys
 
+    @classmethod
+    def create_from_json(cls, jsonfile:str, default:str=None, db_path:str="./") -> dict:
+        """Create multiple databases from a json-file.
+        If there is an "_attach_" keyword among the column definitions, attach that list of databases.
+
+        Args:
+            jsonfile:   string containing filename of a valid json-file which holds the database structure
+            default:    json-file containing default column-definitions to be applied to all tables
+            db_path:    folder for database files. Create if non-existent.
+        
+        Returns:
+            dict:       dictionary containing database-names=connection pairs
+        """
+        # read json files
+        with open(jsonfile) as f:
+            db_struct = json.load(f)
+        if default:
+            with open(default) as f:
+                default = json.load(f)
+            for db_name in db_struct:
+                for table in db_struct[db_name]:
+                    db_struct[db_name][table].update(default)  # apply default columns
+
+        # check database filepath
+        pathlib.Path(db_path).mkdir(exist_ok=True)
+        db_path = pathlib.Path(db_path)
+
+        # connect to/create database files
+        conns = dict()
+        for db_name in db_struct:
+            print(f"Connect to database: {db_name}")
+            attach = db_struct[db_name].pop("_attach_", [])
+            conns[db_name] = cls(db_path / f"{db_name}.db", attach)
+            # create tables if they don't exist already
+            for table, cols in db_struct[db_name].items():
+                conns[db_name].create(table, **cols)
+        
+        return conns
+
     def create(self, table, *cols, **constr) -> bool:
         """Create table with provided columns and/or constraints.
         The table will be created only if it doesn't exist already.
