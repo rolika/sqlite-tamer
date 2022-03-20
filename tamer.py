@@ -28,18 +28,21 @@ SOFTWARE.
 import sqlite3
 import sys
 import os
+import json
+import pathlib
 
 
 class Tamer(sqlite3.Connection):
     """Instanciated as a subclass of SQLite-connection object."""
-    def __init__(self, db_name=":memory:") -> None:
+    def __init__(self, db_name=":memory:", attach:list=[]) -> None:
         """Initialize SQLite3 db-connection.
         If the database file doesn't exist, it'll be created.
         Makes use of Row-object to access through column-names (and indexing).
         For a temporary database in memory, use the default ':memory:' name.
 
         Args:
-            db_name: string containing a database-name (could also be a path-like object)
+            db_name:    string containing a database-name (could also be a path-like object)
+            attach:     list of databases to attach. Attached name is filename without extension
 
         Reading:
             https://docs.python.org/3/library/sqlite3.html#connection-objects
@@ -47,10 +50,15 @@ class Tamer(sqlite3.Connection):
         try:
             super().__init__(db_name)
             self.row_factory = sqlite3.Row
+            self._attach = {name.split(".")[0]: name for name in attach}
+            self.attach(**self._attach)            
         except sqlite3.Error as err:
             sys.exit("Couldn't connect to database: {}".format(err))
         self._db_name = db_name
-
+    
+    def __del__(self):
+        """On deletion or garbage collection detach any databases. """
+        self.detach(*self._attach)  # the single asteriks * unpacks the keys
 
     def create(self, table, *cols, **constr) -> bool:
         """Create table with provided columns and/or constraints.
