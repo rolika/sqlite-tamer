@@ -81,7 +81,8 @@ class Tamer(sqlite3.Connection):
                 default = json.load(f)
             for db_name in db_struct:
                 for table in db_struct[db_name]:
-                    db_struct[db_name][table].update(default)  # apply default columns
+                    if table != "_attach_":
+                        db_struct[db_name][table].update(default)  # apply default columns
 
         # check database filepath
         pathlib.Path(db_path).mkdir(exist_ok=True)
@@ -91,7 +92,7 @@ class Tamer(sqlite3.Connection):
         conns = dict()
         for db_name in db_struct:
             print(f"Connect to database: {db_name}")
-            attach = db_struct[db_name].pop("_attach_", [])
+            attach = db_struct[db_name].pop("_attach_")
             conns[db_name] = cls(db_path / f"{db_name}.db", attach)
             # create tables if they don't exist already
             for table, cols in db_struct[db_name].items():
