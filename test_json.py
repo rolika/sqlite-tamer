@@ -9,12 +9,12 @@ class JsonTest(unittest.TestCase):
     
     def test_table_kontakt(self):
         expected = ('szemely', 'szervezet', 'kontakt', 'cim', 'telefon', 'email', 'vevo', 'szallito', 'gyarto', 'ajanlatkeszito')
-        return self.assertEquals(self._conn["kontakt"].get_tables(), expected)
+        return self.assertEqual(self._conn["kontakt"].get_tables(), expected)
     
     def test_table_projekt(self):
         expected = ('projekt', 'munkaresz', 'hely', 'jelleg', 'megkereses', 'ajanlat')
         print(self._conn["projekt"].get_tables())
-        return self.assertEquals(self._conn["projekt"].get_tables(), expected)
+        return self.assertEqual(self._conn["projekt"].get_tables(), expected)
 
 
 if __name__ == "__main__":
