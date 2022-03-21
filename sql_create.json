@@ -1,0 +1,128 @@
+{
+    "kontakt": {
+        "_attach_": [],
+        "szemely": {
+            "elotag": "TEXT DEFAULT ''",
+            "vezeteknev": "TEXT NOT NULL",
+            "keresztnev": "TEXT DEFAULT ''",
+            "becenev": "TEXT DEFAULT ''",
+            "nem": "TEXT DEFAULT ''"
+        },
+        "szervezet": {
+            "rovidnev": "TEXT NOT NULL",
+            "teljesnev": "TEXT DEFAULT ''"
+        },
+        "kontakt": {
+            "szemelyazonosito": "INTEGER NOT NULL REFERENCES szemely",
+            "szervezetazonosito": "INTEGER NOT NULL REFERENCES szervezet"
+        },
+        "cim": {
+            "kontaktazonosito": "INTEGER NOT NULL REFERENCES kontakt",
+            "orszag": "TEXT DEFAULT 'H'",
+            "megye": "TEXT DEFAULT ''",
+            "iranyitoszam": "TEXT DEFAULT ''",
+            "helyseg": "TEXT NOT NULL",
+            "kozterulet": "TEXT DEFAULT ''",
+            "hrsz": "TEXT DEFAULT ''",
+            "postafiok": "TEXT DEFAULT ''",
+            "honlap": "TEXT DEFAULT ''",
+            "tipus": "TEXT DEFAULT 'elsődleges'"
+        },
+        "telefon": {
+            "kontaktazonosito": "INTEGER NOT NULL REFERENCES kontakt",
+            "telefonszam": "TEXT NOT NULL",
+            "tipus": "TEXT DEFAULT 'elsődleges'"
+        },
+        "email": {
+            "kontaktazonosito": "INTEGER NOT NULL REFERENCES kontakt",
+            "emailcim": "TEXT NOT NULL",
+            "tipus": "TEXT DEFAULT 'elsődleges'"
+        },
+        "vevo": {
+            "kontaktazonosito": "INTEGER UNIQUE NOT NULL REFERENCES kontakt"
+        },
+        "szallito": {
+            "kontaktazonosito": "INTEGER UNIQUE NOT NULL REFERENCES kontakt"
+        },
+        "gyarto": {
+            "kontaktazonosito": "INTEGER UNIQUE NOT NULL REFERENCES kontakt"
+        },
+        "ajanlatkeszito":{
+            "kontaktazonosito": "INTEGER UNIQUE NOT NULL REFERENCES kontakt"
+        }
+    },
+
+    "projekt": {
+        "_attach_": ["kontakt.db"],
+        "projekt": {
+            "nev": "TEXT NOT NULL",
+            "kod": "TEXT DEFAULT ''",
+            "ev": "INTEGER NOT NULL",
+            "szam": "INTEGER NOT NULL"
+        },
+        "munkaresz": {
+            "projektazonosito": "INTEGER NOT NULL REFERENCES projekt",
+            "megnevezes": "TEXT NOT NULL"
+        },
+        "hely": {
+            "munkareszazonosito": "INTEGER NOT NULL REFERENCES munkaresz",
+            "orszag": "TEXT DEFAULT 'H'",
+            "megye": "TEXT DEFAULT ''",
+            "iranyitoszam": "TEXT DEFAULT ''",
+            "helyseg": "TEXT NOT NULL",
+            "kozterulet": "TEXT DEFAULT ''",
+            "hrsz": "TEXT DEFAULT ''",
+            "postafiok": "TEXT DEFAULT ''",
+            "honlap": "TEXT DEFAULT ''"
+        },
+        "jelleg": {
+            "munkareszazonosito": "INTEGER NOT NULL REFERENCES munkaresz",
+            "megnevezes": "TEXT NOT NULL"
+        },
+        "megkereses": {
+            "jelleg":"INTEGER NOT NULL REFERENCES jelleg",
+            "ajanlatkero":"INTEGER NOT NULL REFERENCES vevo",
+            "temafelelos":"INTEGER NOT NULL REFERENCES ajanlatkeszito",
+            "hatarido":"TEXT DEFAULT ''"
+        },
+        "ajanlat": {
+            "megkeresesazonosito":"INTEGER NOT NULL REFERENCES megkereses",
+            "ar":"REAL NOT NULL",
+            "leadva":"TEXT DEFAULT CURRENT_DATE",
+            "ervenyes":"TEXT DEFAULT ''",
+            "esely":"INTEGER DEFAULT 5"
+        }
+    },
+
+    "raktar": {
+        "_attach_": ["kontakt.db"],
+        "anyag": {
+            "gyartoazonosito":"INTEGER NOT NULL REFERENCES gyarto",
+            "nev":"TEXT NOT NULL",
+            "tipus":"TEXT DEFAULT ''",
+            "cikkszam":"TEXT DEFAULT ''",
+            "leiras":"TEXT DEFAULT ''",
+            "szin":"TEXT DEFAULT ''",
+            "szinkod" : "TEXT DEFAULT ''",
+            "egyseg":"TEXT",
+            "kiszereles_nev":"TEXT DEFAULT ''",
+            "kiszereles":"REAL",
+            "csomagolas_nev":"TEXT DEFAULT ''",
+            "csomagolas":"REAL",
+            "kritikus":"REAL",
+            "szallitasi_ido":"INTEGER DEFAULT 30",
+            "eltarthato":"INTEGER DEFAULT 0"
+        },
+        "termek": {
+            "anyagazonosito":"INTEGER NOT NULL REFERENCES anyag",
+            "szallitoazosito":"INTEGER NOT NULL REFERENCES szallito",
+            "egysegar":"REAL NOT NULL",
+            "kedvezmeny": "REAL DEFAULT 0"
+        },
+        "keszlet": {
+            "termekazonosito":"INTEGER NOT NULL REFERENCES termek",
+            "mennyiseg":"REAL DEFAULT 0",
+            "hely":"TEXT DEFAULT ''"
+        }
+    }
+}
