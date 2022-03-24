@@ -53,7 +53,7 @@
     },
 
     "projekt": {
-        "_attach_": ["kontakt.db"],
+        "_attach_": ["kontakt"],
         "projekt": {
             "nev": "TEXT NOT NULL",
             "kod": "TEXT DEFAULT ''",
@@ -95,7 +95,7 @@
     },
 
     "raktar": {
-        "_attach_": ["kontakt.db"],
+        "_attach_": ["kontakt"],
         "anyag": {
             "gyartoazonosito":"INTEGER NOT NULL REFERENCES gyarto",
             "nev":"TEXT NOT NULL",
