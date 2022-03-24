@@ -27,48 +27,59 @@ SOFTWARE.
 
 import sqlite3
 import sys
-import os
 import json
 import pathlib
 
 
+DEFAULT_FOLDER = "./"
+DEFAULT_EXTENSION = "db"
+
+
 class Tamer(sqlite3.Connection):
     """Instanciated as a subclass of SQLite-connection object."""
-    def __init__(self, db_name=":memory:", attach:list=[]) -> None:
+    def __init__(self, db_name=":memory:", db_folder:str=DEFAULT_FOLDER, db_ext:str=DEFAULT_EXTENSION, attach:list=[]) -> None:
         """Initialize SQLite3 db-connection.
         If the database file doesn't exist, it'll be created.
         Makes use of Row-object to access through column-names (and indexing).
         For a temporary database in memory, use the default ':memory:' name.
 
         Args:
-            db_name:    string containing a database-name (could also be a path-like object)
+            db_name:    string containing a database-name
+            db_folder:  string containing the folder in which the database should be created
+            db_ext:     string containing the extension for the database name
             attach:     list of databases to attach. Attached name is filename without extension
 
         Reading:
             https://docs.python.org/3/library/sqlite3.html#connection-objects
         """
+        # check database filepath
+        pathlib.Path(db_folder).mkdir(exist_ok=True)
+        self._db = pathlib.Path(db_folder, f"{db_name}.{db_ext}")
+        self._db_folder = db_folder
+        self._db_ext = db_ext
+
         try:
-            super().__init__(db_name)
+            super().__init__(self._db)
             self.row_factory = sqlite3.Row
             self._attach = {name.split(".")[0]: name for name in attach}
             self.attach(**self._attach)            
         except sqlite3.Error as err:
             sys.exit("Couldn't connect to database: {}".format(err))
-        self._db_name = db_name
     
     def __del__(self):
         """On deletion or garbage collection detach any databases. """
         self.detach(*self._attach)  # the single asteriks * unpacks the keys
 
     @classmethod
-    def create_from_json(cls, jsonfile:str, default:str=None, db_path:str="./") -> dict:
+    def create_from_json(cls, jsonfile:str, default:str=None, db_folder:str=DEFAULT_FOLDER, db_ext:str=DEFAULT_EXTENSION) -> dict:
         """Create multiple databases from a json-file.
         If there is an "_attach_" keyword among the column definitions, attach that list of databases.
 
         Args:
             jsonfile:   string containing filename of a valid json-file which holds the database structure
             default:    json-file containing default column-definitions to be applied to all tables
-            db_path:    folder for database files. Create if non-existent.
+            db_folder:  string containing the folder in which the database should be created
+            db_ext:     string containing the extension for the database name
         
         Returns:
             dict:       dictionary containing database-names=connection pairs
@@ -84,16 +95,12 @@ class Tamer(sqlite3.Connection):
                     if table != "_attach_":
                         db_struct[db_name][table].update(default)  # apply default columns
 
-        # check database filepath
-        pathlib.Path(db_path).mkdir(exist_ok=True)
-        db_path = pathlib.Path(db_path)
-
         # connect to/create database files
         conns = dict()
         for db_name in db_struct:
             print(f"Connect to database: {db_name}")
             attach = db_struct[db_name].pop("_attach_")
-            conns[db_name] = cls(db_path / f"{db_name}.db", attach)
+            conns[db_name] = cls(db_name, db_folder, db_ext, attach)
             # create tables if they don't exist already
             for table, cols in db_struct[db_name].items():
                 conns[db_name].create(table, **cols)
@@ -335,9 +342,9 @@ class Tamer(sqlite3.Connection):
         else:
             try:
                 self.close()
-                os.unlink(self._db_name)
+                self._db.unlink()
                 return True
-            except (OSError, sqlite3.Error) as err:
+            except (FileNotFoundError, sqlite3.Error) as err:
                 print("Couldn't delete database:", err, file=sys.stderr)
                 return False
 
@@ -432,9 +439,10 @@ class Tamer(sqlite3.Connection):
 
     def attach(self, **kwargs):
         """Add another database file to the current database connection.
+        It is assumed, that the attachable database files are in the same folder and have the same extensions.
 
         Args:
-            kwargs: schemaname=filename key-value pairs
+            kwargs: schemaname=database name key-value pairs (database name without folder and extension)
         
         Returns:
             boolean value depending on wether the attach was successful or not
@@ -444,8 +452,9 @@ class Tamer(sqlite3.Connection):
         """
         try:
             with self:
-                for schemaname, filename in kwargs.items():
-                    self.execute("""ATTACH DATABASE ? AS ?;""", (filename, schemaname))
+                for schemaname, db_name in kwargs.items():
+                    file = pathlib.Path(self._db_folder, f"{db_name}.{self._db_ext}")
+                    self.execute("""ATTACH DATABASE ? AS ?;""", (file, schemaname))
             return True        
         except sqlite3.Error as err:
             print("Couldn't attach database:", err, file=sys.stderr)

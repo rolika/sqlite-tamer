@@ -5,7 +5,7 @@ class JsonTest(unittest.TestCase):
     """Test database creation from json files"""
 
     def setUp(self) -> None:
-        self._conn = tamer.Tamer.create_from_json("sql_create.json", "sql_default.json", "db/")
+        self._conn = tamer.Tamer.create_from_json("sql_create.json", "sql_default.json", "db")
     
     def test_table_kontakt(self):
         expected = ('szemely', 'szervezet', 'kontakt', 'cim', 'telefon', 'email', 'vevo', 'szallito', 'gyarto', 'ajanlatkeszito')

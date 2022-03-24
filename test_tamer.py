@@ -6,7 +6,7 @@ class TamerTest(unittest.TestCase):
     """Testing sqlite-tamer Tamer() class"""
 
     def setUp(self):
-        self.conn = tamer.Tamer("movie.db")
+        self.conn = tamer.Tamer("movie")
         self.conn.create("movies", "title", "year", "watched", rowid="INTEGER PRIMARY KEY")
         self.conn.insert("movies", title="Star Wars", year=1977, watched=2012)
         self.conn.insert("movies", title="The Matrix", year=1999, watched=50)
