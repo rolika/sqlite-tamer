@@ -15,6 +15,10 @@ class TamerTest(unittest.TestCase):
         self.conn.insert("movies", title="2012", year=2009, watched=1)
         self.conn.insert("movies", title="2012", year=2012, watched=2012)
 
+    def test_memory(self):
+        memdb = tamer.Tamer()
+        self.assertIsInstance(memdb, sqlite3.Connection)
+
     def test_init(self):
         self.assertIsInstance(self.conn, sqlite3.Connection)
 

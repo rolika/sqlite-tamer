@@ -31,17 +31,18 @@ import json
 import pathlib
 
 
-DEFAULT_FOLDER = "./"
+DEFAULT_NAME = ":memory:"
+DEFAULT_FOLDER = ""
 DEFAULT_EXTENSION = "db"
 
 
 class Tamer(sqlite3.Connection):
     """Instanciated as a subclass of SQLite-connection object."""
-    def __init__(self, db_name=":memory:", db_folder:str=DEFAULT_FOLDER, db_ext:str=DEFAULT_EXTENSION, attach:list=[]) -> None:
+    def __init__(self, db_name=DEFAULT_NAME, db_folder:str=DEFAULT_FOLDER, db_ext:str=DEFAULT_EXTENSION, attach:list=[]) -> None:
         """Initialize SQLite3 db-connection.
         If the database file doesn't exist, it'll be created.
         Makes use of Row-object to access through column-names (and indexing).
-        For a temporary database in memory, use the default ':memory:' name.
+        For a temporary database in memory, provide the default ':memory:' name.
 
         Args:
             db_name:    string containing a database-name
@@ -52,23 +53,27 @@ class Tamer(sqlite3.Connection):
         Reading:
             https://docs.python.org/3/library/sqlite3.html#connection-objects
         """
-        # check database filepath
-        pathlib.Path(db_folder).mkdir(exist_ok=True)
-        self._db = pathlib.Path(db_folder, f"{db_name}.{db_ext}")
-        self._db_folder = db_folder
-        self._db_ext = db_ext
+        # database in memory
+        if db_name == "DEFAULT_NAME":
+            super().__init__(db_name)
+        else:
+            # check database filepath
+            pathlib.Path(db_folder).mkdir(exist_ok=True)
+            self._db = pathlib.Path(db_folder, f"{db_name}.{db_ext}")
+            self._db_folder = db_folder
+            self._db_ext = db_ext
 
-        try:
-            super().__init__(self._db)
-            self.row_factory = sqlite3.Row
-            self._attach = {name.split(".")[0]: name for name in attach}
-            self.attach(**self._attach)            
-        except sqlite3.Error as err:
-            sys.exit("Couldn't connect to database: {}".format(err))
+            try:
+                super().__init__(self._db)
+                self.row_factory = sqlite3.Row
+                self._attach = {name.split(".")[0]: name for name in attach}
+                self.attach(**self._attach)            
+            except sqlite3.Error as err:
+                sys.exit("Couldn't connect to database: {}".format(err))
     
     def __del__(self):
         """On deletion or garbage collection detach any databases. """
-        self.detach(*self._attach)  # the single asteriks * unpacks the keys
+        self.detach(*self._attach)  # the single asterisk * unpacks the keys
 
     @classmethod
     def create_from_json(cls, jsonfile:str, default:str=None, db_folder:str=DEFAULT_FOLDER, db_ext:str=DEFAULT_EXTENSION) -> dict:
@@ -99,7 +104,7 @@ class Tamer(sqlite3.Connection):
         conns = dict()
         for db_name in db_struct:
             print(f"Connect to database: {db_name}")
-            attach = db_struct[db_name].pop("_attach_")
+            attach = db_struct[db_name].pop("_attach_", [])
             conns[db_name] = cls(db_name, db_folder, db_ext, attach)
             # create tables if they don't exist already
             for table, cols in db_struct[db_name].items():
