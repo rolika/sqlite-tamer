@@ -1,6 +1,5 @@
 {
-    "azonosito": "INTEGER PRIMARY KEY",
-    "gyakorisag": "INTEGER DEFAULT 0",
-    "letrehozva": "TEXT DEFAULT CURRENT_DATE",
-    "modositva": "TEXT DEFAULT CURRENT_DATE"
+    "id": "INTEGER PRIMARY KEY",
+    "created": "TEXT DEFAULT CURRENT_DATE",
+    "modified": "TEXT DEFAULT CURRENT_DATE"
 }

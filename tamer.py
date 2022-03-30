@@ -66,7 +66,8 @@ class Tamer(sqlite3.Connection):
             try:
                 super().__init__(self._db)
                 self.row_factory = sqlite3.Row
-                self._attach = {name.split(".")[0]: name for name in attach}
+                print(f"Connect to database: {self._db}")
+                self._attach = {name: name for name in attach}
                 self.attach(**self._attach)            
             except sqlite3.Error as err:
                 sys.exit("Couldn't connect to database: {}".format(err))
@@ -103,12 +104,12 @@ class Tamer(sqlite3.Connection):
         # connect to/create database files
         conns = dict()
         for db_name in db_struct:
-            print(f"Connect to database: {db_name}")
             attach = db_struct[db_name].pop("_attach_", [])
             conns[db_name] = cls(db_name, db_folder, db_ext, attach)
             # create tables if they don't exist already
             for table, cols in db_struct[db_name].items():
                 conns[db_name].create(table, **cols)
+                pass
         
         return conns
 
@@ -459,7 +460,8 @@ class Tamer(sqlite3.Connection):
             with self:
                 for schemaname, db_name in kwargs.items():
                     file = pathlib.Path(self._db_folder, f"{db_name}.{self._db_ext}")
-                    self.execute("""ATTACH DATABASE ? AS ?;""", (file, schemaname))
+                    print(f"Attach {file} as {schemaname}")
+                    self.execute("""ATTACH DATABASE ? AS ?;""", (str(file), schemaname))
             return True        
         except sqlite3.Error as err:
             print("Couldn't attach database:", err, file=sys.stderr)
