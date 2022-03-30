@@ -20,9 +20,9 @@ class JsonTest(unittest.TestCase):
         return self.assertEqual(self._conn["contact"].get_columns("contact"), expected)
 
 
-    # def tearDown(self):
-    #     for conn in self._conn.values():
-    #         conn.drop()
+    def tearDown(self):
+        for conn in self._conn.values():
+            conn.drop()
 
 
 if __name__ == "__main__":

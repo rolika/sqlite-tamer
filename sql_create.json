@@ -19,8 +19,8 @@
     "contact": {
         "_attach_": ["person", "company"],
         "contact": {
-            "person_id": "INTEGER NOT NULL, FOREIGN KEY(person_id) REFERENCES person(id)",
-            "company_id": "INTEGER NOT NULL, FOREIGN KEY(company_id) REFERENCES company(id)"
+            "person_id": "INTEGER NOT NULL",
+            "company_id": "INTEGER NOT NULL"
         }
     }
 }

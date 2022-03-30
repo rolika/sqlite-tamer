@@ -71,10 +71,6 @@ class Tamer(sqlite3.Connection):
                 self.attach(**self._attach)            
             except sqlite3.Error as err:
                 sys.exit("Couldn't connect to database: {}".format(err))
-    
-    def __del__(self):
-        """On deletion or garbage collection detach any databases. """
-        self.detach(*self._attach)  # the single asterisk * unpacks the keys
 
     @classmethod
     def create_from_json(cls, jsonfile:str, default:str=None, db_folder:str=DEFAULT_FOLDER, db_ext:str=DEFAULT_EXTENSION) -> dict:
