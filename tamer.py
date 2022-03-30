@@ -1,5 +1,5 @@
 """
-Module for simple data persistence using the SQLite architecture
+Module for most common tasks in SQLite
 
 MIT License
 
