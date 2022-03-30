@@ -1,5 +1,5 @@
 # sqlite-tamer
-Module for simple data persistence using the SQLite architecture
+Module for most common tasks in SQLite.
 
 The Tamer() class provides easy, painless access to the underlying SQLite database through its methods.
 
