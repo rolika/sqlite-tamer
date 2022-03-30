@@ -1,0 +1,5 @@
+{
+    "id": "INTEGER PRIMARY KEY",
+    "created": "TEXT DEFAULT CURRENT_DATE",
+    "modified": "TEXT DEFAULT CURRENT_DATE"
+}

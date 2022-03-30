@@ -6,7 +6,7 @@ class TamerTest(unittest.TestCase):
     """Testing sqlite-tamer Tamer() class"""
 
     def setUp(self):
-        self.conn = tamer.Tamer("movie.db")
+        self.conn = tamer.Tamer("movie")
         self.conn.create("movies", "title", "year", "watched", rowid="INTEGER PRIMARY KEY")
         self.conn.insert("movies", title="Star Wars", year=1977, watched=2012)
         self.conn.insert("movies", title="The Matrix", year=1999, watched=50)
@@ -14,6 +14,10 @@ class TamerTest(unittest.TestCase):
         self.conn.insert("movies", title="The Lord of The Rings", year=2002, watched=2)
         self.conn.insert("movies", title="2012", year=2009, watched=1)
         self.conn.insert("movies", title="2012", year=2012, watched=2012)
+
+    def test_memory(self):
+        memdb = tamer.Tamer()
+        self.assertIsInstance(memdb, sqlite3.Connection)
 
     def test_init(self):
         self.assertIsInstance(self.conn, sqlite3.Connection)

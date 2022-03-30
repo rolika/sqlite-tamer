@@ -1,0 +1,26 @@
+{
+    "person": {
+        "person": {
+            "prefix": "TEXT DEFAULT ''",
+            "lastname": "TEXT NOT NULL",
+            "firstname": "TEXT DEFAULT ''",
+            "nickname": "TEXT DEFAULT ''",
+            "sex": "TEXT DEFAULT ''"
+        }
+    },
+
+    "company": {
+        "company": {
+            "shortname": "TEXT NOT NULL",
+            "fullname": "TEXT DEFAULT ''"
+        }
+    },
+
+    "contact": {
+        "_attach_": ["person", "company"],
+        "contact": {
+            "person_id": "INTEGER NOT NULL",
+            "company_id": "INTEGER NOT NULL"
+        }
+    }
+}
