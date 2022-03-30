@@ -54,7 +54,7 @@ class Tamer(sqlite3.Connection):
             https://docs.python.org/3/library/sqlite3.html#connection-objects
         """
         # database in memory
-        if db_name == "DEFAULT_NAME":
+        if db_name == DEFAULT_NAME:
             super().__init__(db_name)
         else:
             # check database filepath
