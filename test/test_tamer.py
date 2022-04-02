@@ -1,6 +1,6 @@
 import unittest
 import sqlite3
-import tamer
+import code.tamer as tamer
 
 class TamerTest(unittest.TestCase):
     """Testing sqlite-tamer Tamer() class"""
