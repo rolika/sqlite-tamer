@@ -1,12 +1,12 @@
 import unittest
-import code.tamer as tamer
+from code.tamer.tamer import Tamer
 
 
 class AttachTest(unittest.TestCase):
     """Test ataching databases"""
 
     def setUp(self) -> None:
-        self._conn = tamer.Tamer.create_from_json("test/sql_create.json", "test/sql_default.json")
+        self._conn = Tamer.create_from_json("test/sql_create.json", "test/sql_default.json")
         # setup a contact
         self._person_id = self._conn["person"].insert("person", lastname="Doe", firstname="John")
         self._conn["person"].insert("person", lastname="Doe", firstname="Jane")
