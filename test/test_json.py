@@ -1,11 +1,12 @@
 import unittest
-import tamer
+from code.tamer.tamer import Tamer
+
 
 class JsonTest(unittest.TestCase):
     """Test database creation from json files"""
 
     def setUp(self) -> None:
-        self._conn = tamer.Tamer.create_from_json("sql_create.json", "sql_default.json")
+        self._conn = Tamer.create_from_json("test/sql_create.json", "test/sql_default.json")
     
     def test_table_person(self):
         expected = ("prefix", "lastname", "firstname", "nickname", "sex", "id", "created", "modified")        
